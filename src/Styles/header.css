@@ -1,0 +1,419 @@
+/* ===========================
+   HEADER / NAVBAR
+   =========================== */
+.headers {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.navbar {
+  background: #ffffff;
+  padding: 0 !important;
+  border-bottom: 1px solid #e8edf8;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* Logo */
+.navbar-brand-logo {
+  padding: 6px 0 6px 16px;
+  display: flex;
+  align-items: center;
+}
+.nav-logo-main {
+  width: 395px;
+  height: 8rem;
+  object-fit: contain;
+}
+
+/* Nav links row */
+.nav-links-row {
+  align-items: center;
+  gap: 2px;
+}
+
+/* Each nav link */
+.nav-item-link {
+  color: #031B77 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px;
+  padding: 8px 12px !important;
+  white-space: nowrap;
+  transition: color 0.2s, transform 0.2s !important;
+  position: relative;
+}
+.nav-item-link:hover {
+  color: #e31e24 !important;
+  transform: translateY(-2px);
+}
+/* Animated underline on hover */
+.nav-item-link::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: #e31e24;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
+}
+.nav-item-link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Dropdown */
+.nav-dropdown .dropdown-toggle {
+  color: #031B77 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+.nav-dropdown .dropdown-menu {
+  border: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 6px 0;
+}
+.nav-dropdown .dropdown-item {
+  font-size: 14px;
+  font-weight: 600;
+  color: #031B77;
+  padding: 10px 20px 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-dropdown .dropdown-item::before {
+  display: none;
+}
+.dropdown-cock-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  margin-right: 8px;
+  transform: rotate(-79deg);
+  filter: drop-shadow(0 0 0.5px #031B77);
+}
+.nav-dropdown .dropdown-item:hover .dropdown-cock-icon {
+  filter: brightness(0) saturate(100%) invert(20%) sepia(95%) saturate(6000%) hue-rotate(350deg) brightness(95%) contrast(95%);
+}
+.nav-dropdown .dropdown-item:hover {
+  background: #f0f4ff;
+  color: #031B77;
+}
+.nav-dropdown .dropdown-item:hover::before {
+  display: none;
+}
+
+/* CONTACT US — blue button */
+.nav-contact-btn {
+  background: #031B77 !important;
+  color: white !important;
+  border-radius: 7px !important;
+  padding: 9px 18px !important;
+  margin-left: 8px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  transition: background 0.2s !important;
+}
+.nav-contact-btn:hover {
+  background: #e31e24 !important;
+  color: white !important;
+}
+
+/* Misc utility classes kept for compatibility */
+.join-whatsp {
+  padding: 5px 14px;
+  font-size: 13px;
+  color: white;
+  background-color: #4CAF50;
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  outline: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+.join-whatsp:hover { background-color: #4CAF50; border-color: #4CAF50; color: white; }
+
+/* ── Mobile Offcanvas ── */
+@media screen and (max-width: 1199px) {
+  .nav-logo-main {
+    width: 200px;
+    height: 66px;
+  }
+
+  /* Offcanvas panel */
+  .offcanvas.offcanvas-end {
+    background-color: #ffffff !important;
+    width: 75% !important;
+    max-width: 320px;
+  }
+  .offcanvas-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #eef1f8 !important;
+    padding: 16px 20px !important;
+  }
+  .offcanvas-header .btn-close {
+    filter: none !important;
+    opacity: 0.7 !important;
+  }
+  .offcanvas-body {
+    background-color: #ffffff !important;
+    padding: 8px 20px 20px !important;
+    overflow-y: auto;
+  }
+
+  /* Nav links inside offcanvas */
+  .offcanvas-body .nav-links-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    gap: 0 !important;
+  }
+  .offcanvas-body .nav-item-link {
+    color: #1a1a1a !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    padding: 14px 0 !important;
+    border-bottom: 1px solid #eef1f8 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    text-align: left !important;
+  }
+  .offcanvas-body .nav-item-link:hover {
+    color: #031B77 !important;
+    background: #f8f9ff !important;
+    padding-left: 6px !important;
+  }
+
+  /* Contact Us inside offcanvas — blue pill button */
+  .offcanvas-body .nav-contact-btn {
+    background: #031B77 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    margin: 16px 0 0 !important;
+    padding: 14px 20px !important;
+    text-align: center !important;
+    width: 100% !important;
+    justify-content: center !important;
+    border-bottom: none !important;
+    display: flex !important;
+    font-size: 14px !important;
+    letter-spacing: 1px !important;
+  }
+  .offcanvas-body .nav-contact-btn:hover {
+    background: #e31e24 !important;
+    color: white !important;
+    padding-left: 20px !important;
+  }
+
+  /* Dropdown inside offcanvas */
+  .offcanvas-body .nav-dropdown .dropdown-toggle {
+    color: #1a1a1a !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    padding: 14px 0 !important;
+    width: 100%;
+    border-bottom: 1px solid #eef1f8;
+    background: transparent !important;
+    text-align: left !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  .offcanvas-body .nav-dropdown .dropdown-toggle::after {
+    border-top-color: #333 !important;
+    margin-left: 4px !important;
+  }
+  .offcanvas-body .nav-dropdown .dropdown-menu {
+    background-color: #f8f9ff !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    border: 1px solid #e4e8f8 !important;
+    padding: 4px 0 !important;
+    margin: 0 0 8px 0 !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+  .offcanvas-body .nav-dropdown .dropdown-item {
+    color: #333 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 12px 16px !important;
+    background: transparent !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  .offcanvas-body .nav-dropdown .dropdown-item .dropdown-cock-icon {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    flex-shrink: 0 !important;
+  }
+  .offcanvas-body .nav-dropdown .dropdown-item:hover {
+    color: #031B77 !important;
+    background: #eef2ff !important;
+  }
+}
+
+/* Shuttlecock icon in dropdown - pointing right */
+
+
+/* ===========================
+   JERSEY MODAL — RESPONSIVE
+   =========================== */
+.jersey-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.jersey-modal-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 36px 32px;
+  max-width: 620px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.jersey-modal-content {
+  flex: 1;
+}
+
+.jersey-modal-title {
+  color: #031B77;
+  font-weight: 800;
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.jersey-modal-text {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+.jersey-modal-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.jersey-modal-cancel-btn {
+  padding: 11px 24px;
+  border-radius: 8px;
+  border: 2px solid #031B77;
+  background: #fff;
+  color: #031B77;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.jersey-modal-continue-btn {
+  padding: 11px 24px;
+  border-radius: 8px;
+  border: none;
+  background: #031B77;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.jersey-modal-image-wrap {
+  flex: 0 0 220px;
+}
+
+.jersey-modal-image {
+  width: 220px;
+  height: 270px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Mobile responsive for jersey modal ── */
+@media screen and (max-width: 768px) {
+  .jersey-modal-overlay {
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .jersey-modal-box {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+    width: calc(100vw - 20px);
+    max-width: 340px;
+    border-radius: 14px;
+    max-height: 85vh;
+    overflow-y: auto;
+    align-items: stretch;
+  }
+
+  .jersey-modal-image-wrap {
+    flex: unset;
+    width: 100%;
+    order: -1;
+  }
+
+  .jersey-modal-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    object-fit: contain;
+    box-shadow: none;
+  }
+
+  .jersey-modal-content {
+    flex: unset;
+  }
+
+  .jersey-modal-title {
+    font-size: 17px;
+    margin-bottom: 6px;
+  }
+
+  .jersey-modal-text {
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .jersey-modal-buttons {
+    gap: 8px;
+    width: 100%;
+  }
+
+  .jersey-modal-cancel-btn,
+  .jersey-modal-continue-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px 10px;
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,113 @@
+/* ===========================
+   PRIVACY POLICY & TERMS
+   =========================== */
+
+.policy-page {
+  background: #f8f9fc;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* Hero */
+.policy-hero {
+  background: linear-gradient(135deg, #031B77 0%, #0a2fa8 100%);
+  padding: 70px 20px 50px;
+  text-align: center;
+  color: white;
+  position: relative;
+}
+.policy-hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.policy-hero p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+}
+
+/* Back button on policy hero */
+.policy-back-btn {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.15);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.policy-back-btn:hover {
+  background: rgba(255,255,255,0.28);
+  color: #fff;
+  text-decoration: none;
+}
+
+@media screen and (max-width: 480px) {
+  .policy-back-btn { font-size: 12px; padding: 6px 12px; top: 14px; left: 14px; }
+}
+
+/* Content wrapper */
+.policy-content {
+  background: white;
+  border-radius: 12px;
+  padding: 48px 52px;
+  margin-top: -30px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+}
+
+/* Sections */
+.policy-section {
+  margin-bottom: 36px;
+}
+.policy-section:last-child {
+  margin-bottom: 0;
+}
+.policy-section h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #031B77;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e8ecf8;
+}
+.policy-section p {
+  font-size: 14.5px;
+  color: #444;
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+.policy-section ul {
+  padding-left: 20px;
+  margin: 0;
+}
+.policy-section ul li {
+  font-size: 14.5px;
+  color: #444;
+  line-height: 1.8;
+  margin-bottom: 6px;
+}
+.policy-section a {
+  color: #031B77;
+  text-decoration: underline;
+}
+.policy-section a:hover {
+  color: #e31e24;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .policy-hero h1 { font-size: 1.8rem; }
+  .policy-content { padding: 28px 20px; margin-top: -20px; }
+  .policy-section h2 { font-size: 1rem; }
+}
