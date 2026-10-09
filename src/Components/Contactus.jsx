@@ -223,7 +223,7 @@ const Contactus = () => {
                 </div>
                 <div>
                   <h4>Email Us</h4>
-                  <p><a href={`mailto:${val.CEmail}`}>{val.CEmail}</a></p>
+                  <p><a href={/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? `mailto:${val.CEmail}` : `https://mail.google.com/mail/?view=cm&to=${val.CEmail}`} target="_blank" rel="noopener noreferrer">{val.CEmail}</a></p>
                 </div>
               </div>
 
@@ -257,7 +257,7 @@ const Contactus = () => {
                   ))}
                   {/* Gmail icon */}
                   <a
-                    href={`https://mail.google.com/mail/?view=cm&to=${Addcontactus?.[0]?.CEmail || "geetha@shuttlesmash.in"}`}
+                    href={/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? `mailto:${Addcontactus?.[0]?.CEmail || "geetha@shuttlesmash.in"}` : `https://mail.google.com/mail/?view=cm&to=${Addcontactus?.[0]?.CEmail || "geetha@shuttlesmash.in"}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="csocial-btn"

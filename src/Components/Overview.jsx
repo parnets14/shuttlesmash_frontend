@@ -98,7 +98,7 @@ const Overview = () => {
           <Container>
             <div className="team-header" data-aos="fade-up" data-aos-duration="700">
               <h2 className="team-title">TEAM <span>ADGP</span></h2>
-              <p className="team-tagline">Uniting Passion. Driving Excellence.</p>
+              <p className="team-tagline">One Platform Endless Possibilities</p>
               <p className="team-subtitle">PASSIONATE BADMINTON ORGANISER</p>
             </div>
             <div className="team-grid">

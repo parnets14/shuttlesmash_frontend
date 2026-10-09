@@ -11,12 +11,12 @@ import KeyHighlights from "./Components/KeyHighlights";
 import LeadershipTeam from "./Components/LeadershipTeam";
 import Events from "./Components/Events";
 import Results from "./Components/Results";
+import Ranking from "./Components/Ranking";
 import Gallery from "./Components/Gallery";
 import Contactus from "./Components/Contactus";
 
-// Admin panel
-
 import Dashboard from "./Components/Admin/Dashboard";
+
 import Main from "./Components/Admin/Main";
 import AdminBanner from "./Components/Admin/AdminBanner";
 import AdminPartners from "./Components/Admin/AdminPartners";
@@ -36,6 +36,7 @@ import AdminAchivers from "./Components/Admin/AdminAchivers";
 import AdminTeamMember from "./Components/Admin/AdminTeamMember";
 import AdminLeadershipTeam from "./Components/Admin/AdminLeadershipTeam";
 import Registration from "./Components/Registration";
+import PaymentSuccess from "./Components/PaymentSuccess";
 import PrivacyPolicy from "./Components/PrivacyPolicy";
 import TermsAndConditions from "./Components/TermsAndConditions";
 import RefundPolicy from "./Components/RefundPolicy";
@@ -115,11 +116,33 @@ function App() {
           />
 
           <Route
+            path="/Paymentsuccess"
+            element={
+              <>
+                <Header />
+                <PaymentSuccess />
+                <Footer />
+              </>
+            }
+          />
+
+          <Route
             path="/results"
             element={
               <>
                 <Header />
                 <Results />
+                <Footer />
+              </>
+            }
+          />
+
+          <Route
+            path="/ranking"
+            element={
+              <>
+                <Header />
+                <Ranking />
                 <Footer />
               </>
             }

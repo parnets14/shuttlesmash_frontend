@@ -20,7 +20,10 @@ const Registration = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const item = JSON.parse(decodeURIComponent(queryParams.get("item")));
+  const itemParam = queryParams.get("item");
+  const idParam = queryParams.get("id");
+  const [item, setItem] = useState(itemParam ? JSON.parse(decodeURIComponent(itemParam)) : null);
+  const eventId = item?._id || idParam;
 
   const [toast, setToast] = useState(null);
   const showToast = useCallback((msg, type = "info") => setToast({ msg, type }), []);
@@ -35,7 +38,11 @@ const Registration = () => {
     axios.get(`${API_URL}/api/admin/getevents`)
       .then(r => {
         const events = r.data.getevents || [];
-        const freshEvent = events.find(e => e._id === item?._id);
+        const freshEvent = events.find(e => e._id === eventId);
+        // If we arrived via ?id= (payment failure redirect), populate item from API
+        if (freshEvent && !item) {
+          setItem(freshEvent);
+        }
         if (freshEvent?.EventInfo) {
           setEventInfo(freshEvent.EventInfo);
         }
@@ -179,23 +186,58 @@ const Registration = () => {
 
   const regData = JSON.parse(sessionStorage.getItem("regData") || "null");
 
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
   const AddRegisterquery = async () => {
     try {
-      const res = await axios.post(`${API_URL}/api/user/registration`, {
+      setPaymentLoading(true);
+
+      // Step 1: Save registration
+      const regRes = await axios.post(`${API_URL}/api/user/registration`, {
         eventsId:    item?._id,
         catForms:    regData?.catForms,
         PlayerEmail: regData?.catForms?.[0]?.entries?.[0]?.[0]?.email,
         PlayerPhoneNo: regData?.catForms?.[0]?.entries?.[0]?.[0]?.phone,
         TotalAmount: regData?.totalAmount,
         Category:    regData?.catForms?.map(f => ({ categoryId: f.catId })),
+        EventNames:  item?.EventName,
+        EventsDate:  item?.EventStartdate,
+        RegisteredDate: new Date().toLocaleDateString("en-IN"),
+        RegisteredTime: new Date().toLocaleTimeString("en-IN"),
+        playerNames: regData?.catForms?.flatMap(f => f.entries.flat().map(p => p.name)),
       });
-      if (res.status === 200) {
-        showToast("Registration successful!", "success");
-        setShowPayment(false);
-        sessionStorage.removeItem("regData");
-        setTimeout(() => navigate("/events"), 2000);
+
+      if (regRes.status !== 200) {
+        showToast("Registration failed. Try again.", "error");
+        setPaymentLoading(false);
+        return;
       }
-    } catch (e) { console.log(e); showToast("Registration failed. Try again.", "error"); }
+
+      // Step 2: Initiate PhonePe payment
+      const firstPlayer = regData?.catForms?.[0]?.entries?.[0]?.[0];
+      const paymentPayload = {
+        userId: regRes.data?.registrationId || regRes.data?.getregistration?._id || Date.now().toString(),
+        username: firstPlayer?.name || "Player",
+        Mobile: firstPlayer?.phone || "",
+        amount: regData?.totalAmount,
+        successUrl: `${window.location.origin}/Paymentsuccess`,
+        failedUrl: `${window.location.origin}/registration?id=${eventId}`,
+      };
+
+      const payRes = await axios.post(`${API_URL}/api/phonepe/addpaymentphonepay`, paymentPayload);
+
+      if (payRes.data?.url) {
+        // Redirect user to PhonePe payment page
+        window.location.href = payRes.data.url;
+      } else {
+        showToast("Payment initialization failed. Please try again.", "error");
+        setPaymentLoading(false);
+      }
+    } catch (e) {
+      console.error("Payment error:", e);
+      showToast(e.response?.data?.error || "Payment failed. Please try again.", "error");
+      setPaymentLoading(false);
+    }
   };
 
   const availableOtherCats = allCategories.filter(c => !catForms.some(f => f.cat._id === c._id));
@@ -298,7 +340,7 @@ const Registration = () => {
                 {/* <a className="reg-share-icon-btn reg-share-icon-btn--whatsapp" href={`https://wa.me/?text=${encodeURIComponent((item?.EventName||"Tournament")+" "+window.location.href)}`} target="_blank" rel="noopener noreferrer" title="WhatsApp">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
                 </a> */}
-                <a className="reg-share-icon-btn reg-share-icon-btn--gmail" href={`https://mail.google.com/mail/?view=cm&to=geetha@shuttlesmash.in&su=${encodeURIComponent(item?.EventName||"Tournament Inquiry")}`} target="_blank" rel="noopener noreferrer" title="Email us">
+                <a className="reg-share-icon-btn reg-share-icon-btn--gmail" href={/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? `mailto:geetha@shuttlesmash.in?subject=${encodeURIComponent(item?.EventName||"Tournament Inquiry")}` : `https://mail.google.com/mail/?view=cm&to=geetha@shuttlesmash.in&su=${encodeURIComponent(item?.EventName||"Tournament Inquiry")}`} target="_blank" rel="noopener noreferrer" title="Email us">
                   <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" alt="Gmail" width="22" height="22" style={{display:"block"}} />
                 </a>
               </div>
@@ -465,7 +507,7 @@ const Registration = () => {
               </button>
               {showOtherPanel && availableOtherCats.length > 0 && (
                 <div className="reg-other-panel">
-                  <p className="reg-other-panel-label">Select categories to add:</p>
+                  <p className="reg-other-panel-label" style={{ fontSize: "18px", fontWeight: 700, color: "#000" }}>Select categories to add:</p>
                   <div className="reg-other-chips">
                     {availableOtherCats.map(cat => (
                       <button key={cat._id}
@@ -481,7 +523,7 @@ const Registration = () => {
                 </div>
               )}
               {showOtherPanel && availableOtherCats.length === 0 && (
-                <p className="reg-other-empty">All categories have been added.</p>
+                <p className="reg-other-empty" style={{ fontSize: "16px", fontWeight: 700, color: "#000" }}>All categories have been added.</p>
               )}
             </div>
 
@@ -507,7 +549,7 @@ const Registration = () => {
       </Container>
 
       {/* ══ SUMMARY MODAL ══ */}
-      <Modal show={showSummary} onHide={() => setShowSummary(false)} size="lg" style={{ zIndex: 99999 }} centered>
+      <Modal show={showSummary} onHide={() => setShowSummary(false)} size="md" style={{ zIndex: 99999 }} centered dialogClassName="reg-summary-modal">
         <Modal.Header closeButton style={{ background: "#031B77", borderBottom: "1px solid rgba(255,255,255,0.1)" }} className="reg-modal-header">
           <div className="reg-modal-title-row">
             <button className="reg-modal-arrow-btn" onClick={() => setShowSummary(false)}>
@@ -558,8 +600,8 @@ const Registration = () => {
                         {p.name}
                       </div>
                       <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "13px", color: "rgba(0,0,0,0.5)" }}>✉ {p.email}</span>
-                        <span style={{ fontSize: "13px", color: "rgba(0,0,0,0.5)" }}>📞 {p.phone}</span>
+                        <span style={{ fontSize: "13px", color: "#000", fontWeight: 700 }}>✉ {p.email}</span>
+                        <span style={{ fontSize: "13px", color: "#000", fontWeight: 700 }}>📞 {p.phone}</span>
                       </div>
                     </div>
                   ))}
@@ -570,30 +612,32 @@ const Registration = () => {
 
           {/* Total */}
           <div style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "16px 0 4px", borderTop: "2px solid #e4e8f8", marginTop: "8px"
+            display: "flex", justifyContent: "flex-end", alignItems: "baseline",
+            gap: "8px", padding: "16px 0 4px", borderTop: "2px solid #e4e8f8", marginTop: "8px"
           }}>
-            <span style={{ color: "rgba(0,0,0,0.45)", fontSize: "12px",
-              fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px" }}>
-              Total
+            <span style={{ color: "#000", fontSize: "16px",
+              fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              Total:
             </span>
-            <span style={{ color: "#031B77", fontSize: "28px", fontWeight: 800 }}>
+            <span style={{ color: "#031B77", fontSize: "24px", fontWeight: 900 }}>
               ₹{regData?.totalAmount}
             </span>
           </div>
         </Modal.Body>
         <Modal.Footer style={{ background: "#f8f9fc", borderTop: "1px solid #e4e8f8" }}>
-          <button className="reg-modal-pay-btn" onClick={() => { setShowSummary(false); setShowPayment(true); }}>
-            Pay Now
+          <button className="reg-modal-pay-btn" onClick={() => { setShowSummary(false); AddRegisterquery(); }}
+            disabled={paymentLoading}
+            style={{ opacity: paymentLoading ? 0.7 : 1, cursor: paymentLoading ? "not-allowed" : "pointer" }}>
+            {paymentLoading ? "Processing..." : "Proceed to Pay →"}
           </button>
         </Modal.Footer>
       </Modal>
 
       {/* ══ PAYMENT MODAL ══ */}
-      <Modal show={showPayment} onHide={() => setShowPayment(false)} size="md" style={{ zIndex: 99999 }} centered>
-        <Modal.Header closeButton style={{ background: "#031B77", borderBottom: "1px solid rgba(255,255,255,0.1)" }} className="reg-modal-header">
+      <Modal show={showPayment} onHide={() => !paymentLoading && setShowPayment(false)} size="md" style={{ zIndex: 99999 }} centered>
+        <Modal.Header closeButton={!paymentLoading} style={{ background: "#031B77", borderBottom: "1px solid rgba(255,255,255,0.1)" }} className="reg-modal-header">
           <div className="reg-modal-title-row">
-            <button className="reg-modal-arrow-btn" onClick={() => setShowPayment(false)}>
+            <button className="reg-modal-arrow-btn" onClick={() => !paymentLoading && setShowPayment(false)} disabled={paymentLoading}>
               <FaArrowLeft />
             </button>
             <Modal.Title style={{ color: "#fff", fontWeight: 700 }}>
@@ -606,27 +650,43 @@ const Registration = () => {
             background: "#f4f6fb", border: "1px solid #e4e8f8",
             borderRadius: "12px", padding: "16px 20px", marginBottom: "20px"
           }}>
-            <div style={{ fontWeight: 700, color: "#031B77", fontSize: "15px", marginBottom: "10px" }}>📌 Note</div>
+            <div style={{ fontWeight: 700, color: "#031B77", fontSize: "15px", marginBottom: "10px" }}>📌 Payment Information</div>
             <p style={{ color: "#444", fontSize: "13.5px", lineHeight: 1.6, marginBottom: "8px" }}>
-              1. After successful payment, please share the screenshot to our WhatsApp No.{" "}
-              <a href="https://wa.link/5s5pya" style={{ color: "#3a6fd8", fontWeight: 600, textDecoration: "none" }}>+91 88617 11005</a>
+              You will be redirected to PhonePe to complete your payment of <strong>₹{regData?.totalAmount}</strong>.
+            </p>
+            <p style={{ color: "#444", fontSize: "13.5px", lineHeight: 1.6, marginBottom: "8px" }}>
+              After successful payment, your registration will be confirmed automatically.
             </p>
             <p style={{ color: "#444", fontSize: "13.5px", lineHeight: 1.6, marginBottom: 0 }}>
-              2. If you are facing any payment issue please contact us{" "}
+              If you face any payment issues, contact us at{" "}
               <a href="tel:+918861711005" style={{ color: "#3a6fd8", fontWeight: 600, textDecoration: "none" }}>+91 88617 11005</a>
             </p>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <img src="../Assets/payment.jpg" alt="Scan to Pay"
-              style={{ width: "100%", maxWidth: "260px", borderRadius: "12px", border: "1px solid #e4e8f8" }} />
-            <p style={{ color: "rgba(0,0,0,0.4)", fontSize: "13px", marginTop: "8px" }}>Scan to pay with any UPI app</p>
+
+          {/* Payment summary */}
+          <div style={{
+            background: "#f8f9fc", border: "1px solid #e4e8f8",
+            borderRadius: "12px", padding: "16px 20px"
+          }}>
+            <div style={{ fontWeight: 700, color: "#031B77", fontSize: "14px", marginBottom: "12px" }}>Order Summary</div>
+            {regData?.catForms?.map((f, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "13.5px" }}>
+                <span style={{ color: "#555" }}>{f.catName} × {f.entries.length}</span>
+                <span style={{ fontWeight: 600, color: "#031B77" }}>₹{f.catPrice * f.entries.length}</span>
+              </div>
+            ))}
+            <div style={{ borderTop: "1px solid #e4e8f8", marginTop: "12px", paddingTop: "12px", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontWeight: 700, color: "#031B77" }}>Total</span>
+              <span style={{ fontWeight: 800, color: "#031B77", fontSize: "18px" }}>₹{regData?.totalAmount}</span>
+            </div>
           </div>
         </Modal.Body>
         <Modal.Footer style={{ background: "#f8f9fc", borderTop: "1px solid #e4e8f8" }}>
           <button className="reg-modal-cancel-btn"
-            onClick={() => setShowPayment(false)}>✕ Cancel</button>
-          <button className="reg-modal-pay-btn" onClick={AddRegisterquery}>
-            Confirm Registration
+            onClick={() => setShowPayment(false)} disabled={paymentLoading}>✕ Cancel</button>
+          <button className="reg-modal-pay-btn" onClick={AddRegisterquery} disabled={paymentLoading}
+            style={{ opacity: paymentLoading ? 0.7 : 1, cursor: paymentLoading ? "not-allowed" : "pointer" }}>
+            {paymentLoading ? "Processing..." : "Pay with PhonePe →"}
           </button>
         </Modal.Footer>
       </Modal>

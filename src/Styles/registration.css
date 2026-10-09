@@ -200,7 +200,22 @@
   background: #f1f5f9 !important;
   pointer-events: none;
   overflow: visible;
-  opacity: 0.65;
+  opacity: 1;
+}
+
+/* Override text colors so they're visible on the light background */
+.reg-cat-card--disabled .reg-cat-name {
+  color: #94a3b8;
+}
+.reg-cat-card--disabled .reg-cat-fee-label {
+  color: #94a3b8;
+}
+.reg-cat-card--disabled .reg-cat-fee {
+  color: #94a3b8;
+}
+.reg-cat-card--disabled .reg-cat-type-badge {
+  color: #94a3b8;
+  border-color: #cbd5e1;
 }
 .reg-cat-full-badge {
   position: absolute;
@@ -361,7 +376,7 @@
 
 /* ── Cancel button ─────────────────────── */
 .reg-cancel-btn {
-  background: #000000;
+  background: #031B77;
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -374,7 +389,7 @@
   font-family: 'Outfit', sans-serif;
 }
 .reg-cancel-btn:hover {
-  background: #222222;
+  background: #dc3545;
   transform: translateY(-1px);
 }
 
@@ -1541,4 +1556,12 @@
   background: rgba(58, 111, 216, 0.18);
   color: #93c5fd;
   border: 1px solid rgba(58, 111, 216, 0.4);
+}
+
+
+/* Summary Modal - reduced width, centered */
+.reg-summary-modal .modal-dialog {
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }

@@ -381,7 +381,7 @@ const Events = () => {
                         Registration Closed
                       </Button>
                     ) : (
-                      <a href={`/registration?item=${encodeURIComponent(JSON.stringify(item))}`}>
+                      <a href={`/registration?id=${item._id}`}>
                         <Button variant="" className="registr-btn">Register</Button>
                       </a>
                     )}

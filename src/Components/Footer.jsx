@@ -6,6 +6,12 @@ import { FaHome, FaCalendarAlt, FaImages, FaTrophy, FaInfoCircle, FaHeart } from
 import { MdLocationOn, MdPhone, MdEmail } from "react-icons/md";
 
 const Footer = () => {
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const getEmailLink = (email, subject) => {
+    if (isMobile) return `mailto:${email}${subject ? `?subject=${encodeURIComponent(subject)}` : ""}`;
+    return `https://mail.google.com/mail/?view=cm&to=${email}${subject ? `&su=${encodeURIComponent(subject)}` : ""}`;
+  };
+
   const [Addcontactus, setAddcontactus] = useState([]);
   const getAddcontactus = async () => {
     try {
@@ -35,7 +41,7 @@ const Footer = () => {
           {/* Col 1 — Logo + tagline + description */}
           <div className="footer-col footer-brand">
             <img src="../Assets/logo111.png" alt="Shuttle Smash" className="footer-logo" />
-            <p className="footer-tagline">Uniting passion. Driving excellence.</p>
+            <p className="footer-tagline">One Platform Endless Possibilities</p>
             {/* <p className="footer-desc">
               Your premier badminton championship platform — connecting players, celebrating champions, and growing the sport.
             </p> */}
@@ -85,7 +91,7 @@ const Footer = () => {
                     <li>
                       <span className="footer-contact-icon"><MdEmail /></span>
                       <a
-                        href={`https://mail.google.com/mail/?view=cm&to=${val.CEmail}`}
+                        href={getEmailLink(val.CEmail)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -143,7 +149,7 @@ const Footer = () => {
               {/* Gmail icon — opens Gmail compose directly */}
               {Addcontactus.length > 0 && Addcontactus[0]?.CEmail && (
                 <a
-                  href={`https://mail.google.com/mail/?view=cm&to=${Addcontactus[0].CEmail}`}
+                  href={getEmailLink(Addcontactus[0].CEmail)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="footer-social-link footer-email-icon"
@@ -167,10 +173,15 @@ const Footer = () => {
                   <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="Google Pay" style={{ height: "20px" }} />
                 </div>
                 <div className="footer-pay-badge" title="PhonePe">
-                  <img src="https://cdn.worldvectorlogo.com/logos/phonepe-1.svg" alt="PhonePe" style={{ height: "20px" }} />
+                  <img 
+                    src="https://cdn.worldvectorlogo.com/logos/phonepe-1.svg" 
+                    alt="PhonePe" 
+                    style={{ height: "20px" }} 
+                    onError={(e) => { e.target.src = "../Assets/phonepe.svg"; }}
+                  />
                 </div>
                 <div className="footer-pay-badge" title="Visa">
-                  <img src="https://img.icons8.com/color/96/visa.png" alt="Visa" />
+                  <img src="../Assets/visa.jpeg" alt="Visa" style={{ height: "20px" }} />
                 </div>
               </div>
             </div>
@@ -185,8 +196,6 @@ const Footer = () => {
             <a href="/privacy-policy">Privacy Policy</a>
             <span className="footer-policy-divider">|</span>
             <a href="/terms-and-conditions">Terms &amp; Conditions</a>
-            <span className="footer-policy-divider">|</span>
-            <a href="/refund-policy">Refund Policy</a>
           </div>
         </div>
       </Container>

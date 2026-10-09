@@ -918,15 +918,15 @@ console.log("Time....", Time);
                         <td style={{ padding: "12px", fontSize: "12px" }}>
                           {item.Categories?.length > 0
                             ? item.Categories.map((c, ci) => (
-                              <div key={ci} style={{ marginBottom: "3px" }}>
+                              <div key={ci} style={{ marginBottom: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
                                 <span style={{ fontWeight: 600 }}>{c.CategoryName}</span>
                                 {c.Limit > 0 && (
-                                  <span style={{ color: (c.RegisteredCount || 0) >= c.Limit ? "#e53e3e" : "#031B77", fontWeight: 700, marginLeft: "6px" }}>
+                                  <span style={{ color: (c.RegisteredCount || 0) >= c.Limit ? "#e53e3e" : "#031B77", fontWeight: 700 }}>
                                     ({c.RegisteredCount || 0}/{c.Limit})
                                   </span>
                                 )}
                                 {!c.Limit && c.RegisteredCount > 0 && (
-                                  <span style={{ color: "#031B77", fontWeight: 700, marginLeft: "6px" }}>
+                                  <span style={{ color: "#031B77", fontWeight: 700 }}>
                                     ({c.RegisteredCount})
                                   </span>
                                 )}
@@ -1088,7 +1088,7 @@ console.log("Time....", Time);
                       <div className="col-md-4 do-sear mb-2">
                         <label>Registration Limit</label>
                         <input type="number" className="vi_0" placeholder="0" value={cat.Limit || ""}
-                          onChange={(e) => { const c = [...addCategories]; c[idx].Limit = e.target.value; setAddCategories(c); }} />
+                          onChange={(e) => { const c = [...addCategories]; c[idx].Limit = parseInt(e.target.value) || 0; setAddCategories(c); }} />
                       </div>
                     </div>
                     {cat.RegisteredCount > 0 && (
@@ -1195,7 +1195,7 @@ console.log("Time....", Time);
                     <div className="row">
                       <div className="col-md-4 do-sear mb-2"><label>Price (₹) <span style={{color:"red"}}>*</span></label><input type="number" className="vi_0" value={cat.CategoryPrice} onChange={(e) => { const c = [...addCategories]; c[idx].CategoryPrice = e.target.value; setAddCategories(c); }} /></div>
                       <div className="col-md-4 do-sear mb-2"><label>Total Players</label><input type="number" className="vi_0" value={cat.TotalPlayers} onChange={(e) => { const c = [...addCategories]; c[idx].TotalPlayers = e.target.value; setAddCategories(c); }} /></div>
-                      <div className="col-md-4 do-sear mb-2"><label>Registration Limit</label><input type="number" className="vi_0" placeholder="0" value={cat.Limit || ""} onChange={(e) => { const c = [...addCategories]; c[idx].Limit = e.target.value; setAddCategories(c); }} /></div>
+                      <div className="col-md-4 do-sear mb-2"><label>Registration Limit</label><input type="number" className="vi_0" placeholder="0" value={cat.Limit || ""} onChange={(e) => { const c = [...addCategories]; c[idx].Limit = parseInt(e.target.value) || 0; setAddCategories(c); }} /></div>
                     </div>
                     {cat.RegisteredCount > 0 && (<div style={{ padding: "8px 12px", background: "#f0f4ff", borderRadius: "6px", fontSize: "13px", color: "#031B77", fontWeight: 600 }}>Registered: {cat.RegisteredCount}{cat.Limit > 0 ? ` / ${cat.Limit}` : ""}</div>)}
                   </div>
