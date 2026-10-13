@@ -12,6 +12,7 @@ import LeadershipTeam from "./Components/LeadershipTeam";
 import Events from "./Components/Events";
 import Results from "./Components/Results";
 import Ranking from "./Components/Ranking";
+import RankingDetail from "./Components/RankingDetail";
 import Gallery from "./Components/Gallery";
 import Contactus from "./Components/Contactus";
 
@@ -44,6 +45,7 @@ import ShippingPolicy from "./Components/ShippingPolicy";
 import ReturnPolicy from "./Components/ReturnPolicy";
 import AdminEventHeroBanner from "./Components/Admin/AdminEventHeroBanner";
 import AdminEventInfo from "./Components/Admin/AdminEventInfo";
+import AdminRanking from "./Components/Admin/AdminRanking";
 
 function App() {
   return (
@@ -137,16 +139,9 @@ function App() {
             }
           />
 
-          <Route
-            path="/ranking"
-            element={
-              <>
-                <Header />
-                <Ranking />
-                <Footer />
-              </>
-            }
-          />
+          <Route path="/ranking" element={<><Header /><Ranking /><Footer /></>} />
+          <Route path="/ranking/:groupId" element={<><Header /><RankingDetail /><Footer /></>} />
+          <Route path="/ranking/:year/:category" element={<><Header /><RankingDetail /><Footer /></>} />
 
           <Route
             path="/gallery"
@@ -432,6 +427,8 @@ function App() {
               <Main children={<><AdminLeadershipTeam /></>} />
             }
           />
+          <Route path="/admin_ranking"
+            element={<Main children={<><AdminRanking /></>} />} />
         </Routes>
       </BrowserRouter>
     </div>

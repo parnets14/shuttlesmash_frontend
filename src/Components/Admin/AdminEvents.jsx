@@ -17,7 +17,6 @@ const API_URL = process.env.REACT_APP_API_URL || "https://shuttlesmash.in";
 const AdminEvents = () => {
   // Verify API URL is loaded
   useEffect(() => {
-    console.log("API URL being used:", API_URL);
     if (!process.env.REACT_APP_API_URL) {
       console.error("REACT_APP_API_URL is not defined. Please check your .env file.");
     }
@@ -135,11 +134,8 @@ const AdminEvents = () => {
       alert(error.response?.data?.error || "Failed to add event");
     }
   };
-console.log("Time....", Time);
-
   //integrating get  method
   const [AddEvents, setAddEvents] = useState([]);
-  console.log("AddEvents", AddEvents);
   const getAddEvents = async () => {
     try {
       let res = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/getevents`);
@@ -1282,7 +1278,7 @@ console.log("Time....", Time);
               <ul className="pagination">
                 <li className="not-allow">
                   <span>
-                    <li className="next-prev">
+                    <span className="next-prev">
                       <a
                         onClick={() => {
                           prevpage();
@@ -1290,7 +1286,7 @@ console.log("Time....", Time);
                       >
                         &lt;
                       </a>{" "}
-                    </li>
+                    </span>
                   </span>
                 </li>
                 {numbers?.map((n, i) => {
@@ -1309,14 +1305,14 @@ console.log("Time....", Time);
 
                 <li className="not-allow">
                   <span>
-                    <li
+                    <span
                       className="next-prev"
                       onClick={() => {
                         nextpage();
                       }}
                     >
                       &gt;{" "}
-                    </li>
+                    </span>
                   </span>
                 </li>
               </ul>

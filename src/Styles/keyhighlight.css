@@ -48,7 +48,7 @@
   margin: 0;
 }
 .wwa-hero-overlay p {
-  font-size: 15px;
+  font-size: 19px;
   margin-top: 10px;
   opacity: 0.85;
   letter-spacing: 0.5px;
@@ -150,7 +150,7 @@
 @media screen and (max-width: 768px) {
   .wwa-hero { height: 240px; }
   .wwa-hero-overlay h1 { font-size: 36px; letter-spacing: 2px; }
-  .wwa-hero-overlay p { font-size: 13px; }
+  .wwa-hero-overlay p { font-size: 16px; }
   .wwa-block { flex-direction: column; gap: 20px; padding: 24px 0; }
   .wwa-img-wrap, .wwa-content { flex: 0 0 100%; max-width: 100%; width: 100%; order: unset !important; }
   .wwa-img { height: 220px; min-height: 220px; }
@@ -163,7 +163,7 @@
 @media screen and (max-width: 480px) {
   .wwa-hero { height: 200px; }
   .wwa-hero-overlay h1 { font-size: 28px; letter-spacing: 1px; }
-  .wwa-hero-overlay p { font-size: 12px; }
+  .wwa-hero-overlay p { font-size: 15px; }
   .wwa-block { padding: 18px 0; gap: 14px; }
   .wwa-title { font-size: 19px !important; margin-bottom: 12px; }
   .overview-content, .overview-content ul li, .overview-content ol li {

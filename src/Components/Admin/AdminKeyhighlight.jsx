@@ -284,11 +284,11 @@ const AdminKeyhighlight = () => {
         {npages > 1 && (
           <nav>
             <ul className="pagination">
-              <li className="not-allow"><span><li className="next-prev"><a onClick={prevpage}>&lt;</a></li></span></li>
+              <li className="not-allow"><span><span className="next-prev"><a onClick={prevpage}>&lt;</a></span></span></li>
               {numbers?.map((n, i) => (
                 <li className="active-next" key={i}><a href="#" className="inactive" onClick={() => changePage(n)}>{n}</a></li>
               ))}
-              <li className="not-allow"><span><li className="next-prev" onClick={nextpage}>&gt;</li></span></li>
+              <li className="not-allow"><span><span className="next-prev" onClick={nextpage}>&gt;</span></span></li>
             </ul>
           </nav>
         )}

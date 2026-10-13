@@ -121,7 +121,7 @@
   min-width: 0;
 }
 .home-about-tag {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 800;
   color: #e31e24;
   letter-spacing: 2px;
@@ -317,7 +317,7 @@
 /* ── 3. FEATURE HIGHLIGHTS ─────────────── */
 .home-features-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: white;
   border-radius: 16px;
   padding: 28px 16px;
@@ -871,7 +871,8 @@
   .home-features-grid { grid-template-columns: repeat(2, 1fr); }
   .home-feature-item { border-right: none; border-bottom: 1px solid #e4e8f8; }
   .home-feature-item:nth-child(odd) { border-right: 1px solid #e4e8f8; }
-  .home-feature-item:nth-last-child(-n+2) { border-bottom: none; }
+  /* 5 items wrap as 2 + 2 + 1, so only the last one sits alone on the bottom row */
+  .home-feature-item:last-child { border-bottom: none; border-right: none; }
   .home-media-outer { flex-direction: column; gap: 20px; }
   .home-media-card { flex: unset; width: 100%; box-sizing: border-box; }
   .home-media-img-standalone {
@@ -926,7 +927,7 @@
     flex-direction: column;
     align-items: center;
   }
-  .home-about-tag { font-size: 12px; letter-spacing: 1.5px; }
+  .home-about-tag { font-size: 15px; letter-spacing: 1.5px; }
   .home-about-title { font-size: 24px; line-height: 1.25; margin-bottom: 10px; }
   .home-about-desc { font-size: 14px; line-height: 1.8; text-align: center; }
   .home-about-redline { margin: 0 auto 22px; }

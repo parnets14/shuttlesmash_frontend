@@ -230,9 +230,9 @@ const AdminTeamMember = () => {
           <ul className="pagination">
             <li className="not-allow">
               <span>
-                <li className="next-prev">
+                <span className="next-prev">
                   <a onClick={() => currenpage > 1 && setCurrentpage(currenpage - 1)}>&lt;</a>
-                </li>
+                </span>
               </span>
             </li>
             {numbers.map((n, i) => (
@@ -242,7 +242,7 @@ const AdminTeamMember = () => {
             ))}
             <li className="not-allow">
               <span>
-                <li className="next-prev" onClick={() => currenpage < npages && setCurrentpage(currenpage + 1)}>&gt;</li>
+                <span className="next-prev" onClick={() => currenpage < npages && setCurrentpage(currenpage + 1)}>&gt;</span>
               </span>
             </li>
           </ul>

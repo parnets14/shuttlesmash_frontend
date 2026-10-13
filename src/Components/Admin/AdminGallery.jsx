@@ -202,7 +202,6 @@ const AdminGallery = () => {
       console.log(error);
     }
   };
-  console.log("AddGallery", AddGallery);
 
   //delete method
   const [Data, setData] = useState("");

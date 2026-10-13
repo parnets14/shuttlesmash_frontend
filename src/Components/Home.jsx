@@ -9,6 +9,7 @@ import {
   FaTrophy, FaUsers, FaMedal, FaHandshake,
   FaChevronLeft, FaChevronRight,
 } from "react-icons/fa";
+import { FaRankingStar } from "react-icons/fa6";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 import parse from "html-react-parser";
@@ -192,13 +193,14 @@ const Home = () => {
       {/* ── 3. FEATURE HIGHLIGHTS ────────────── */}
       <section className="home-section" data-aos="fade-up" data-aos-duration="600">
         <Container>
-          <h2 className="headdings mb-5">WHAT SETS US APART</h2>
+          <h2 className="headdings mb-5">WHY YOU CHOOSE US</h2>
           <div className="home-features-grid">
             {[
               { icon: <FaTrophy />, label: "Premium\nTournaments" },
               { icon: <FaUsers />, label: "Leagues &\nCommunity" },
               { icon: <FaMedal />, label: "Rewards &\nRecognition" },
               { icon: <FaHandshake />, label: "Partnerships &\nGrowth" },
+              { icon: <FaRankingStar />, label: "Ranking\nCircuit" },
             ].map((f, i) => (
               <div key={i} className="home-feature-item" data-aos="zoom-in" data-aos-delay={`${i * 100}`}>
                 <div className="home-feature-icon">{f.icon}</div>

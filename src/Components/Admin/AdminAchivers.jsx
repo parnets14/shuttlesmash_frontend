@@ -174,13 +174,13 @@ const AdminAchivers = () => {
   return (
     <div className="customerhead p-2">
       <div className="col-lg-4 d-flex justify-content-center">
-        <div class="input-group ">
-          <span class="input-group-text" id="basic-addon1">
+        <div className="input-group ">
+          <span className="input-group-text" id="basic-addon1">
             <BsSearch />
           </span>
           <input
             type="text"
-            class="form-control"
+            className="form-control"
             placeholder="Search..."
             aria-describedby="basic-addon1"
             onChange={handleFilterH}
@@ -260,7 +260,7 @@ const AdminAchivers = () => {
               <ul className="pagination">
                 <li className="not-allow">
                   <span>
-                    <li className="next-prev">
+                    <span className="next-prev">
                       <a
                         onClick={() => {
                           prevpage();
@@ -268,7 +268,7 @@ const AdminAchivers = () => {
                       >
                         &lt;
                       </a>{" "}
-                    </li>
+                    </span>
                   </span>
                 </li>
                 {numbers?.map((n, i) => {
@@ -287,14 +287,14 @@ const AdminAchivers = () => {
 
                 <li className="not-allow">
                   <span>
-                    <li
+                    <span
                       className="next-prev"
                       onClick={() => {
                         nextpage();
                       }}
                     >
                       &gt;{" "}
-                    </li>
+                    </span>
                   </span>
                 </li>
               </ul>

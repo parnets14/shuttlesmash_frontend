@@ -77,7 +77,6 @@ const AdminCategory = () => {
       console.log(error);
     }
   };
-  console.log("kdjfhv", AddCategory);
   //delete method
   const [Datass, setDatass] = useState("");
   const DeleteCat = async () => {

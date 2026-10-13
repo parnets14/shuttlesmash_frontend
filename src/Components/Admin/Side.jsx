@@ -379,7 +379,16 @@ const Side = () => {
                   </span>
                   <span className="ms-2">Contact Us</span>
                 </li>
-              </Link>             
+              </Link>
+
+              <Link to="/admin_ranking" onClick={handleNavCollapse}>
+                <li className="a-ele ">
+                  <span>
+                    <HiTrophy style={{ fontSize: "20px" }} />
+                  </span>
+                  <span className="ms-2">Ranking Circuit</span>
+                </li>
+              </Link>
 
             
             </ul>

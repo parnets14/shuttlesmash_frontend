@@ -242,7 +242,7 @@ const Contactus = () => {
                 <h4>Follow Us</h4>
                 <div className="contact-social-icons">
                   <a
-                    href="https://wa.link/5s5pya"
+                    href="https://chat.whatsapp.com/JSgotD6mlBZ6XXbMdBWxDW"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="contact-whatsapp-join"

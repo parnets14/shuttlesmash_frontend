@@ -48,7 +48,7 @@
   margin: 0;
 }
 .events-hero-overlay p {
-  font-size: 15px;
+  font-size: 19px;
   margin-top: 10px;
   opacity: 0.88;
   letter-spacing: 0.6px;
@@ -524,7 +524,7 @@
 @media screen and (max-width: 580px) {
   .events-hero { height: 180px; }
   .events-hero-overlay h1 { font-size: 26px; letter-spacing: 2px; }
-  .events-hero-overlay p { font-size: 13px; }
+  .events-hero-overlay p { font-size: 16px; }
   .brochure-strip { flex-direction: column; padding: 24px 16px; gap: 16px; }
   .brochure-deco { display: none; }
   .event-subbanner-title { font-size: 22px; letter-spacing: 0; }

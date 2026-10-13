@@ -387,7 +387,7 @@ const AdminDoubleResult = () => {
               <ul className="pagination">
                 <li className="not-allow">
                   <span>
-                    <li className="next-prev">
+                    <span className="next-prev">
                       <a
                         onClick={() => {
                           prevpage();
@@ -395,7 +395,7 @@ const AdminDoubleResult = () => {
                       >
                         &lt;
                       </a>{" "}
-                    </li>
+                    </span>
                   </span>
                 </li>
                 {numbers?.map((n, i) => {
@@ -414,14 +414,14 @@ const AdminDoubleResult = () => {
 
                 <li className="not-allow">
                   <span>
-                    <li
+                    <span
                       className="next-prev"
                       onClick={() => {
                         nextpage();
                       }}
                     >
                       &gt;{" "}
-                    </li>
+                    </span>
                   </span>
                 </li>
               </ul>

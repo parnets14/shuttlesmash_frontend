@@ -212,13 +212,13 @@ const AdminSingleResult = () => {
   return (
     <div>
       <div className="col-lg-4 d-flex justify-content-center">
-        <div class="input-group ">
-          <span class="input-group-text" id="basic-addon1">
+        <div className="input-group ">
+          <span className="input-group-text" id="basic-addon1">
             <BsSearch />
           </span>
           <input
             type="text"
-            class="form-control"
+            className="form-control"
             placeholder="Search..."
             aria-describedby="basic-addon1"
             onChange={handleFilterH}

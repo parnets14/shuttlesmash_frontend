@@ -638,11 +638,11 @@ const RegistrationList = () => {
                 <ul className="pagination">
                   <li className="not-allow">
                     <span>
-                      <li className="next-prev">
+                      <span className="next-prev">
                         <a onClick={() => { if (currenpage > 1) setCurrentpage(currenpage - 1); }}>
                           &lt;
                         </a>
-                      </li>
+                      </span>
                     </span>
                   </li>
                   {numbers.map((n, i) => (
@@ -658,9 +658,9 @@ const RegistrationList = () => {
                   ))}
                   <li className="not-allow">
                     <span>
-                      <li className="next-prev" onClick={() => { if (currenpage < npages) setCurrentpage(currenpage + 1); }}>
+                      <span className="next-prev" onClick={() => { if (currenpage < npages) setCurrentpage(currenpage + 1); }}>
                         &gt;
-                      </li>
+                      </span>
                     </span>
                   </li>
                 </ul>

@@ -212,7 +212,6 @@ const AdminContactus = () => {
   useEffect(() => {
     getAddcontactus();
   }, []);
-  console.log(Addcontactus);
 
   const [currenpage, setCurrentpage] = useState(1);
   const recordsperpage = 5;
@@ -346,7 +345,6 @@ const AdminContactus = () => {
   useEffect(() => {
     getAddsocial();
   }, []);
-  console.log(Addsocial);
 
   const [currenpage1, setCurrentpage1] = useState(1);
   const recordsperpage1 = 5;
