@@ -44,6 +44,16 @@ const Home = () => {
     return new Date() > fiveDaysAfterEnd;
   };
 
+  // Event is "completed" once its end-date day has fully passed.
+  // This means the event disappears from the public listing at 12:00 AM
+  // on the day after EventEnddate — no manual cleanup needed.
+  const isExpired = (endDateStr) => {
+    if (!endDateStr) return false;
+    const end = new Date(endDateStr);
+    end.setHours(23, 59, 59, 999);
+    return end < new Date();
+  };
+
   const [AddBanner, setAddBanner] = useState([]);
   const [AddEvents, setAddEvents] = useState([]);
   const [AddPartner, setAddPartner] = useState([]);
@@ -216,7 +226,7 @@ const Home = () => {
         <Container>
           <h2 className="headdings mb-5" data-aos="fade-up">UPCOMING TOURNAMENTS</h2>
           {(() => {
-            const visibleEvents = AddEvents?.filter(item => !hiddenEvents.includes(item._id)) || [];
+            const visibleEvents = AddEvents?.filter(item => !hiddenEvents.includes(item._id) && !isExpired(item.EventEnddate)) || [];
             if (visibleEvents.length === 0) return null;
             if (visibleEvents.length === 1) return (
             <div style={{ maxWidth: "520px", margin: "0 auto" }}>

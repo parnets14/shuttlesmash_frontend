@@ -10,12 +10,20 @@ import { GiShuttlecock } from "react-icons/gi";
 import "../Styles/ranking.css";
 
 /* the tournament buttons offered on the ranking card */
-const TOURNAMENT_TYPES = ["Junior Ranking", "Senior Ranking", "Master Ranking"];
+const TOURNAMENT_TYPES = ["Junior Ranking", "Senior Ranking", "Masters Ranking"];
+
+/* older records are saved as "Master Ranking" — treat both spellings as one type */
+const normalizeType = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/^master ranking$/, "masters ranking");
 
 /* the ranking group behind a tournament type — newest year wins */
 const groupForType = (groups, type) =>
   groups
-    .filter((g) => String(g.Title || "").trim().toLowerCase() === String(type).trim().toLowerCase())
+    .filter((g) => normalizeType(g.Title) === normalizeType(type))
     .sort((a, b) => (Number(b.Year) || 0) - (Number(a.Year) || 0))[0] || null;
 
 const Ranking = () => {
@@ -61,7 +69,7 @@ const Ranking = () => {
   const typeList = useMemo(() => {
     const extra = groups
       .map((g) => String(g.Title || "").trim())
-      .filter((t) => t && !TOURNAMENT_TYPES.some((x) => x.toLowerCase() === t.toLowerCase()));
+      .filter((t) => t && !TOURNAMENT_TYPES.some((x) => normalizeType(x) === normalizeType(t)));
     return [...TOURNAMENT_TYPES, ...Array.from(new Set(extra))];
   }, [groups]);
 

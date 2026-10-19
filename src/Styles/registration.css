@@ -1080,6 +1080,54 @@
   font-size: 14px;
   color: rgba(255,255,255,0.85);
   line-height: 1.8;
+  /* keep the indentation / multiple spaces typed in the admin textarea */
+  white-space: pre-wrap;
+}
+/* Blank line typed in the admin description → real vertical space here */
+.ov-desc-gap {
+  height: 14px;
+}
+
+/* Rich text description (bold / italic / underline from the admin editor) */
+.ov-desc-html {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.8;
+}
+
+.ov-desc-html p {
+  margin: 0 0 14px;
+}
+
+.ov-desc-html p:last-child {
+  margin-bottom: 0;
+}
+
+.ov-desc-html b,
+.ov-desc-html strong {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.ov-desc-html i,
+.ov-desc-html em {
+  font-style: italic;
+}
+
+.ov-desc-html u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ov-desc-html ul,
+.ov-desc-html ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.ov-desc-html li {
+  margin-bottom: 4px;
 }
 
 /* Section */
@@ -1564,4 +1612,140 @@
   max-width: 480px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* ── Brochure card ─────────────────────── */
+.sep-card--brochure {
+  border: 1.5px solid rgba(227, 30, 36, 0.45);
+}
+
+.sep-brochure-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brochure-info {
+  min-width: 0;
+}
+
+.brochure-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.brochure-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.5;
+}
+
+.brochure-dl-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: 2px solid #e31e24;
+  background: #e31e24;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.brochure-dl-btn:hover:not(:disabled) {
+  background: #ffffff;
+  color: #e31e24;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(227, 30, 36, 0.3);
+}
+
+.brochure-dl-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.brochure-dl-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+@media screen and (max-width: 576px) {
+  .sep-brochure-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .brochure-dl-btn {
+    width: 100%;
+  }
+}
+
+/* ── Single team entry card ─────────────── */
+.reg-cat-grid--single {
+  grid-template-columns: minmax(260px, 340px);
+  justify-content: center;
+}
+
+/* ── Organisation name block (team events) ─ */
+.reg-org-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin: 20px 20px 0;
+  border: 1px solid #e4e8f8;
+  box-shadow: 0 2px 12px rgba(3, 27, 119, 0.07);
+}
+
+.reg-org-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #031B77;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eef1fa;
+}
+
+.reg-org-card .reg-field {
+  max-width: 520px;
+}
+
+@media screen and (max-width: 576px) {
+  .reg-org-card {
+    margin: 16px 12px 0;
+    padding: 18px 16px;
+  }
+}
+
+/* ── Empty state (no categories / no team entries) ─ */
+.reg-empty-note {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border: 1px dashed #c9d4f5;
+  border-radius: 14px;
+  padding: 28px 26px;
+  text-align: center;
+}
+
+.reg-empty-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #031B77;
+}
+
+.reg-empty-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: #5b6480;
+  line-height: 1.6;
 }

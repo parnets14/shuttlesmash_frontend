@@ -6,7 +6,7 @@ import axios from "axios";
 import parse from "html-react-parser";
 import Aos from "aos";
 import { IoLogoWhatsapp } from "react-icons/io";
-import { FaExpand, FaCalendarAlt, FaDownload } from "react-icons/fa";
+import { FaExpand, FaCalendarAlt, FaDownload, FaFilePdf } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
 import Toast from "./Toast";
 
@@ -24,12 +24,17 @@ const Events = () => {
   }, []);
 
   // ── Download handler (blob fetch to bypass cross-origin) ──
+  // Resolves to true when the file was downloaded, false when the file is missing.
   const handleDownload = async (e, url, filename) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     try {
       const res = await fetch(url);
+      if (!res.ok) return false;
       const blob = await res.blob();
+      if (!blob.size || (blob.type || "").includes("text/html")) return false;
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
@@ -38,14 +43,42 @@ const Events = () => {
       a.click();
       a.remove();
       URL.revokeObjectURL(blobUrl);
+      return true;
     } catch (err) {
       console.log(err);
       window.open(url, "_blank");
+      return true;
     }
   };
 
   const [toast, setToast] = useState(null);
   const showToast = useCallback((msg, type = "info") => setToast({ msg, type }), []);
+
+  // ── Event PDF helpers ────────────────────────────
+  // Only the dedicated EventPdf field drives the "Download PDF" button.
+  const getEventPdfFile = (item) => item?.EventPdf || "";
+
+  const getEventPdfUrl = (item) => {
+    const file = getEventPdfFile(item);
+    return file ? `${process.env.REACT_APP_API_URL}/Events/${encodeURIComponent(file)}` : "";
+  };
+
+  const handleBrochureDownload = async (e, item) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = getEventPdfUrl(item);
+    if (!url) {
+      showToast("Event PDF is not available for this tournament yet.", "info");
+      return;
+    }
+    const file = getEventPdfFile(item);
+    const ext = (file.split(".").pop() || "pdf").toLowerCase();
+    const safeName = (item.EventName || "event").trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+    const ok = await handleDownload(e, url, `${safeName}.${ext}`);
+    if (!ok) {
+      showToast("This event PDF could not be found. Please contact the organiser.", "error");
+    }
+  };
 
   // ── Validation ───────────────────────────────────
   const [isEmailValid, setIsEmailValid] = useState(true);
@@ -302,7 +335,7 @@ const Events = () => {
         <Container>
           <h2 className="headdings mb-4">UPCOMING TOURNAMENTS</h2>
           <div className="event-grid">
-            {AddEvents?.filter(item => !hiddenEvents.includes(item._id)).map((item, i) => (
+            {AddEvents?.filter(item => !hiddenEvents.includes(item._id) && !isExpired(item.EventEnddate)).map((item, i) => (
               <div
                 className="event-grid-card"
                 key={i}
@@ -385,10 +418,23 @@ const Events = () => {
                         <Button variant="" className="registr-btn">Register</Button>
                       </a>
                     )}
+                    {/* Only shown when an Event PDF has been uploaded in the admin panel */}
+                    {item.EventPdf && (
+                      <button
+                        type="button"
+                        className="download-pdf-btn"
+                        onClick={(e) => handleBrochureDownload(e, item)}
+                        title="Download tournament PDF"
+                      >
+                        <FaFilePdf style={{ fontSize: "14px" }} />
+                        Download PDF
+                      </button>
+                    )}
                     <a href="https://chat.whatsapp.com/JSgotD6mlBZ6XXbMdBWxDW"
-                      style={{ color: "unset", textDecoration: "none", flex: "1.4" }}>
+                      className="event-grid-whatsapp-link"
+                      style={{ color: "unset", textDecoration: "none" }}>
                       <Button variant="" className="join-whatsp">
-                        <IoLogoWhatsapp style={{ fontSize: "17px" }} />
+                        <IoLogoWhatsapp style={{ fontSize: "16px" }} />
                        Join Official WhatsApp
                       </Button>
                     </a>
@@ -396,6 +442,11 @@ const Events = () => {
                 </div>
               </div>
             ))}
+            {AddEvents?.filter(item => !hiddenEvents.includes(item._id) && !isExpired(item.EventEnddate)).length === 0 && (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px 16px", color: "#666", fontSize: "15px" }}>
+                No upcoming tournaments at the moment — please check back soon.
+              </div>
+            )}
           </div>
         </Container>
       </div>

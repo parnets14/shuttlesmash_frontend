@@ -18,7 +18,20 @@ const thisYear = new Date().getFullYear();
 const safe     = (v) => (Array.isArray(v) ? v : []);
 
 /* the tournaments offered in the Tournament Name dropdown */
-const TOURNAMENT_TYPES = ["Junior Ranking", "Senior Ranking", "Master Ranking"];
+const TOURNAMENT_TYPES = ["Junior Ranking", "Senior Ranking", "Masters Ranking"];
+
+/* older groups are stored as "Master Ranking" — show / save them as "Masters Ranking" */
+const normalizeType = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/^master ranking$/, "masters ranking");
+
+const canonicalType = (value) => {
+  const raw = String(value || "").trim();
+  return TOURNAMENT_TYPES.find((t) => normalizeType(t) === normalizeType(raw)) || raw;
+};
 
 const round2 = (v) => Math.round(v * 100) / 100;
 
@@ -445,7 +458,7 @@ const AdminRanking = () => {
 
   const openGroupEdit = (g) => {
     setGEditItem(g);
-    setGTitle(g.Title ?? "");
+    setGTitle(canonicalType(g.Title));
     setGYear(g.Year ?? thisYear);
     setGCategories(safe(g.Categories));
     setGStatus(g.Status ?? "Active");
@@ -543,7 +556,7 @@ const AdminRanking = () => {
           <Form.Select className="vi_0" value={gTitle}
             onChange={(e) => setGTitle(e.target.value)}>
             {/* keeps any older custom name visible + selected instead of silently resetting it */}
-            {!TOURNAMENT_TYPES.includes(gTitle) && (
+            {!TOURNAMENT_TYPES.some((t) => normalizeType(t) === normalizeType(gTitle)) && (
               <option value={gTitle}>{gTitle || "Select tournament…"}</option>
             )}
             {TOURNAMENT_TYPES.map((t) => (

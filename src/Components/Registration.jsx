@@ -74,6 +74,24 @@ const Registration = () => {
   const [showOtherPanel, setShowOtherPanel] = useState(false);
   const [otherSelected,  setOtherSelected]  = useState([]);
 
+  // ── Team events ──────────────────────────
+  // A team event has no categories — it has team entries (price / players / limit).
+  // The organisation name is supplied here by the participant.
+  const isTeamEvent = item?.EventType === "team";
+  const [orgName, setOrgName] = useState("");
+  const [orgError, setOrgError] = useState("");
+
+  const teamEntries = (item?.Teams || []).map((t, i) => ({
+    _id: t._id || `team-${i}`,
+    CategoryName: "Team Event",
+    CategoryType: "",
+    CategoryPrice: t.Price || 0,
+    TotalPlayers: t.TotalPlayers || 1,
+    Limit: t.Limit || 0,
+    RegisteredCount: t.RegisteredCount || 0,
+  }));
+  const selectableEntries = isTeamEvent ? teamEntries : allCategories;
+
   const validateEmail = v => /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(v);
   const validatePhone = v => {
     if (!/^\d{10}$/.test(v)) return false;
@@ -150,9 +168,22 @@ const Registration = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
-  const handleProceed = () => {
+  const handleProceed = async () => {
     let valid = true;
     const f = JSON.parse(JSON.stringify(catForms));
+
+    // Team events: organisation name is mandatory
+    if (isTeamEvent) {
+      if (!orgName.trim()) {
+        setOrgError("Required");
+        valid = false;
+      } else if (orgName.trim().length < 2) {
+        setOrgError("Please enter the full name");
+        valid = false;
+      } else {
+        setOrgError("");
+      }
+    }
 
     f.forEach(form => {
       form.entries.forEach(entry => {
@@ -168,8 +199,64 @@ const Registration = () => {
       });
     });
 
+    // ── Same phone / email twice inside this registration ──
+    const phoneMap = new Map();
+    const emailMap = new Map();
+    f.forEach(form => form.entries.forEach(entry => entry.forEach(p => {
+      const ph = String(p.phone || "").replace(/\D/g, "");
+      const em = String(p.email || "").trim().toLowerCase();
+      if (ph) {
+        if (!phoneMap.has(ph)) phoneMap.set(ph, []);
+        phoneMap.get(ph).push(p);
+      }
+      if (em) {
+        if (!emailMap.has(em)) emailMap.set(em, []);
+        emailMap.get(em).push(p);
+      }
+    })));
+
+    const flagDuplicates = (map, field, message) => {
+      map.forEach(list => {
+        if (list.length > 1) {
+          list.forEach(p => { p.errors[field] = message; });
+          valid = false;
+        }
+      });
+    };
+    flagDuplicates(phoneMap, "phone", "Already used above");
+    flagDuplicates(emailMap, "email", "Already used above");
+
+    if (!valid) {
+      setCatForms(f);
+      showToast("Please check the highlighted fields — phone and email must be unique for each player.", "warning");
+      return;
+    }
+
+    // ── Already registered for this event? ──
+    try {
+      const { data } = await axios.post(`${API_URL}/api/user/checkplayers`, {
+        eventsId: item?._id,
+        emails: [...emailMap.keys()],
+        phones: [...phoneMap.keys()],
+      });
+      const dupEmails = data?.duplicateEmails || [];
+      const dupPhones = data?.duplicatePhones || [];
+      if (dupEmails.length || dupPhones.length) {
+        f.forEach(form => form.entries.forEach(entry => entry.forEach(p => {
+          const em = String(p.email || "").trim().toLowerCase();
+          const ph = String(p.phone || "").replace(/\D/g, "");
+          if (dupEmails.includes(em)) p.errors.email = "Already registered";
+          if (dupPhones.includes(ph)) p.errors.phone = "Already registered";
+        })));
+        setCatForms(f);
+        showToast("This phone number or email is already registered for this event.", "error");
+        return;
+      }
+    } catch (e) {
+      console.log("checkplayers failed", e);
+    }
+
     setCatForms(f);
-    if (!valid) { showToast("Please fill all required fields correctly", "warning"); return; }
 
     const payload = {
       catForms: f.map(form => ({
@@ -179,6 +266,7 @@ const Registration = () => {
         entries:  form.entries.map(entry => entry.map(p => ({ name: p.name, email: p.email, phone: p.phone }))),
       })),
       totalAmount,
+      OrganisationName: isTeamEvent ? orgName.trim() : "",
     };
     sessionStorage.setItem("regData", JSON.stringify(payload));
     setShowSummary(true);
@@ -205,6 +293,7 @@ const Registration = () => {
         RegisteredDate: new Date().toLocaleDateString("en-IN"),
         RegisteredTime: new Date().toLocaleTimeString("en-IN"),
         playerNames: regData?.catForms?.flatMap(f => f.entries.flat().map(p => p.name)),
+        OrganisationName: regData?.OrganisationName || "",
       });
 
       if (regRes.status !== 200) {
@@ -235,7 +324,17 @@ const Registration = () => {
       }
     } catch (e) {
       console.error("Payment error:", e);
-      showToast(e.response?.data?.error || "Payment failed. Please try again.", "error");
+      const status = e.response?.status;
+      const msg = e.response?.data?.error;
+      if (status === 409 || status === 400) {
+        // Duplicate player — send them back to fix the form
+        setShowSummary(false);
+        setShowPayment(false);
+        setStep("form");
+        showToast(msg || "This phone or email is already registered for this event.", "error");
+      } else {
+        showToast(msg || "Payment failed. Please try again.", "error");
+      }
       setPaymentLoading(false);
     }
   };
@@ -288,9 +387,17 @@ const Registration = () => {
           <div className="reg-step">
 
             {/* ── Category grid ─────────────────── */}
-            <div className="reg-step-title">Choose Your Category</div>
-            <div className="reg-cat-grid">
-              {allCategories.map(cat => {
+            <div className="reg-step-title">{isTeamEvent ? "Team Registration" : "Choose Your Category"}</div>
+            <div className={`reg-cat-grid${selectableEntries.length === 1 ? " reg-cat-grid--single" : ""}`}>
+              {selectableEntries.length === 0 && (
+                <div className="reg-empty-note">
+                  <div className="reg-empty-title">Registration opening soon</div>
+                  <div className="reg-empty-sub">
+                    Team entries for this tournament haven’t been published yet. Please check back shortly.
+                  </div>
+                </div>
+              )}
+              {selectableEntries.map(cat => {
                 const isFull = cat.Limit > 0 && (cat.RegisteredCount || 0) >= cat.Limit;
                 return (
                 <div key={cat._id} className={`reg-cat-card ${isFull ? "reg-cat-card--disabled" : ""}`}>
@@ -378,13 +485,29 @@ const Registration = () => {
               </div>
               <div className="sep-overview-inner">
                 <div className="ov-card">
-                  <div className="ov-description-list">
-                    {eventInfo.OvInitiative.split("\n").filter(line => line.trim()).map((line, idx) => (
-                      <div key={idx} className="ov-desc-point">
-                        <span className="ov-desc-text">{line.trim()}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {/<\/?(p|div|br|b|strong|i|em|u|ul|ol|li|span)\b/i.test(eventInfo.OvInitiative) ? (
+                    /* Rich text saved from the admin editor (bold / italic / underline) */
+                    <div className="ov-desc-html">{parse(eventInfo.OvInitiative)}</div>
+                  ) : (
+                    <div className="ov-description-list">
+                      {(() => {
+                        // Legacy plain text: keep line breaks AND blank lines so the
+                        // spacing typed in the textarea shows up here too.
+                        const lines = eventInfo.OvInitiative.split("\n");
+                        while (lines.length && !lines[0].trim()) lines.shift();
+                        while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+                        return lines.map((line, idx) =>
+                          line.trim() ? (
+                            <div key={idx} className="ov-desc-point">
+                              <span className="ov-desc-text">{line}</span>
+                            </div>
+                          ) : (
+                            <div key={idx} className="ov-desc-gap" aria-hidden="true" />
+                          )
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -442,6 +565,27 @@ const Registration = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Organisation name — team events only, mandatory */}
+                {isTeamEvent && (
+                  <div className="reg-org-card">
+                    <div className="reg-org-title">Organisation Details</div>
+                    <div className="reg-field">
+                      <label>Organisation Name <span className="reg-req">*</span></label>
+                      <input
+                        type="text"
+                        className={`reg-input ${orgError ? "reg-input-error" : ""}`}
+                        placeholder="Enter your organisation name"
+                        value={orgName}
+                        onChange={(e) => {
+                          setOrgName(e.target.value);
+                          if (e.target.value.trim()) setOrgError("");
+                        }}
+                      />
+                      {orgError && <span className="reg-error">{orgError}</span>}
+                    </div>
+                  </div>
+                )}
 
                 {/* Entries */}
                 {form.entries.map((entry, entryIdx) => (

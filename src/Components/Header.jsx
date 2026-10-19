@@ -63,6 +63,7 @@ function Header() {
                   <Nav.Link href="/events"   className="nav-item-link">TOURNAMENTS</Nav.Link>
                   <Nav.Link href="/gallery"  className="nav-item-link">GALLERY</Nav.Link>
                   <Nav.Link href="/ranking"  className="nav-item-link">RANKING CIRCUIT</Nav.Link>
+                  <Nav.Link href="/podcast"  className="nav-item-link">PODCAST</Nav.Link>
                   {/* <Nav.Link href="/results"  className="nav-item-link">RESULTS</Nav.Link> */}
                    <Nav.Link onClick={() => { setShowOffcanvas(false); setShowJerseyModal(true); }} className="nav-item-link" style={{ cursor: "pointer" }}>BUY JERSEY</Nav.Link> 
                   <Nav.Link href="/contactus" className="nav-item-link nav-contact-btn">CONTACT US</Nav.Link>

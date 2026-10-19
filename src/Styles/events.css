@@ -253,24 +253,71 @@
   width: 18px;
 }
 
+/* All card actions on one line: Register | Download PDF | WhatsApp */
 .event-grid-btns {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+.event-grid-btns > a {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  text-decoration: none;
+}
+
+.event-grid-btns > a > .btn,
+.event-grid-btns > a > .registr-btn,
+.event-grid-btns > a > .join-whatsp {
+  width: 100%;
+}
+
+/* Red Download PDF button */
+.download-pdf-btn {
+  flex: 1.05 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #e31e24;
+  border: 2px solid #e31e24;
+  color: #ffffff;
+  padding: 9px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 12.5px;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.download-pdf-btn:hover {
+  background: #ffffff;
+  color: #e31e24;
+  box-shadow: 0 4px 12px rgba(227, 30, 36, 0.28);
+}
+
+.download-pdf-btn:active {
+  transform: translateY(0);
 }
 
 .registr-btn {
   background-color: #031B77;
   color: white;
-  padding: 10px 26px;
+  padding: 9px 10px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   border: 2px solid #031B77;
   transition: all 0.2s;
   flex: 1;
-  min-width: 100px;
+  min-width: 0;
+  white-space: nowrap;
   text-align: center;
 }
 
@@ -281,19 +328,19 @@
 
 /* WhatsApp button */
 .join-whatsp {
-  flex: 1.4;
-  min-width: 160px;
+  flex: 1.45 1 0;
+  min-width: 0;
   background: #4CAF50;
   border: 2px solid #4CAF50;
   color: white;
-  padding: 10px 16px;
+  padding: 9px 8px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 5px;
   transition: all 0.2s;
   white-space: nowrap;
 }
@@ -302,6 +349,43 @@
   background: #4CAF50;
   border-color: #4CAF50;
   color: white;
+}
+
+/* Slightly tighter type on smaller laptops so all three stay on one line */
+@media (max-width: 1100px) {
+  .registr-btn {
+    font-size: 12px;
+    padding: 9px 6px;
+  }
+  .download-pdf-btn {
+    font-size: 11.5px;
+    padding: 9px 6px;
+    gap: 4px;
+  }
+  .join-whatsp {
+    font-size: 11px;
+    padding: 9px 6px;
+    gap: 4px;
+    white-space: normal;
+    line-height: 1.15;
+    text-align: center;
+  }
+}
+
+/* On narrow phones, stack every action full-width so nothing clips or wraps awkwardly */
+@media (max-width: 480px) {
+  .event-grid-btns {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .event-grid-btns > a,
+  .download-pdf-btn,
+  .registr-btn,
+  .join-whatsp {
+    flex: none;
+    width: 100%;
+  }
 }
 
 /* ── Lightbox ──────────────────────────── */

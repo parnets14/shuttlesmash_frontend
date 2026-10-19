@@ -10,9 +10,156 @@ import axios from "axios";
 import parse from "html-react-parser";
 import { IoEye } from "react-icons/io5";
 import { MdClose } from "react-icons/md";
+import { FaFilePdf } from "react-icons/fa";
+import RichTextEditor from "../RichTextEditor";
 
 // API URL with fallback
 const API_URL = process.env.REACT_APP_API_URL || "https://shuttlesmash.in";
+
+const formatFileSize = (bytes) => {
+  if (!bytes && bytes !== 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+// Nicely styled brochure / PDF uploader used in the Event Details tab
+const prettyFileName = (name) => (name || "").replace(/^\d{10,}_/, "").trim();
+
+const BrochureUploadField = ({ file, onChange, existingFile, hint, label, emptyTitle, hintDefault }) => {
+  const currentName = file?.name || existingFile || "";
+  const isPdf = /\.pdf$/i.test(currentName);
+  const displayName = prettyFileName(currentName);
+
+  return (
+    <div className="col-md-12 mt-2">
+      <label>{label || "Event PDF"}</label>
+      <div className="brochure-upload">
+        <label className="brochure-upload-drop">
+          <span className="brochure-upload-icon"><FaFilePdf /></span>
+          <span className="brochure-upload-text">
+            <span className="brochure-upload-title">
+              {displayName || emptyTitle || "Upload the tournament PDF"}
+            </span>
+            <span className="brochure-upload-sub">
+              {file
+                ? `${isPdf ? "PDF" : "Image"} · ${formatFileSize(file.size)} · click to change`
+                : existingFile
+                  ? "Current file — choose a new one to replace it"
+                  : "PDF, JPG, PNG or WEBP · max 10 MB"}
+            </span>
+          </span>
+          <span className="brochure-upload-browse">Browse</span>
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
+            style={{ display: "none" }}
+            onChange={(e) => onChange(e.target.files?.[0] || "")}
+          />
+        </label>
+        {file && (
+          <button type="button" className="brochure-upload-clear" onClick={() => onChange("")}>
+            Remove
+          </button>
+        )}
+      </div>
+      <small className="brochure-upload-hint">
+        {hint || hintDefault || "This file powers the red “Download PDF” button on the tournament page."}
+      </small>
+    </div>
+  );
+};
+
+
+const emptyTeam = () => ({
+  Price: "",
+  TotalPlayers: 1,
+  Limit: 0,
+});
+
+// Team event editor — same shape as a category, minus Category Name / Category Type.
+// The organisation name is filled by the participant at registration time.
+const TeamFields = ({ teams, setTeams }) => {
+  const patchTeam = (ti, patch) =>
+    setTeams(teams.map((t, i) => (i === ti ? { ...t, ...patch } : t)));
+
+  return (
+    <div>
+      {teams.map((team, ti) => (
+        <div
+          key={ti}
+          style={{
+            background: "#ffffff",
+            borderRadius: "12px",
+            padding: "20px",
+            marginBottom: "16px",
+            border: "2px solid #e4e8f8",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+        >
+          <div
+            className="d-flex justify-content-between align-items-center"
+            style={{ marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid #f0f2f8" }}
+          >
+            <span style={{ fontSize: "16px", fontWeight: 800, color: "#031B77" }}>
+              Team Entry {ti + 1}
+            </span>
+            {teams.length > 1 && (
+              <button
+                type="button"
+                style={{ background: "#e53e3e", color: "#fff", border: "none", borderRadius: "6px", padding: "5px 14px", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}
+                onClick={() => setTeams(teams.filter((_, i) => i !== ti))}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+
+          <div className="row">
+            <div className="col-md-4 do-sear mb-2">
+              <label>Price (₹) <span style={{ color: "red" }}>*</span></label>
+              <input
+                type="number"
+                className="vi_0"
+                placeholder="700"
+                value={team.Price}
+                onChange={(e) => patchTeam(ti, { Price: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 do-sear mb-2">
+              <label>Total Players</label>
+              <input
+                type="number"
+                className="vi_0"
+                placeholder="1"
+                value={team.TotalPlayers}
+                onChange={(e) => patchTeam(ti, { TotalPlayers: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 do-sear mb-2">
+              <label>Registration Limit</label>
+              <input
+                type="number"
+                className="vi_0"
+                placeholder="0"
+                value={team.Limit || ""}
+                onChange={(e) => patchTeam(ti, { Limit: parseInt(e.target.value) || 0 })}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        style={{ background: "#031B77", color: "#fff", border: "none", borderRadius: "8px", padding: "12px 28px", fontSize: "14px", fontWeight: 700, cursor: "pointer", marginTop: "4px" }}
+        onClick={() => setTeams([...teams, emptyTeam()])}
+      >
+        + Add Team
+      </button>
+    </div>
+  );
+};
 
 const AdminEvents = () => {
   // Verify API URL is loaded
@@ -33,7 +180,10 @@ const AdminEvents = () => {
     setEventLocation(""); setEventExhibits(""); setTime("");
     setAddCategories([{ CategoryName: "", CategoryPrice: "", TotalPlayers: 1, CategoryType: "", Limit: 0 }]);
     setAddEventInfo({ Venue: "", OrganizerName: "", OrganizerEmail: "", OvTitle: "", OvSubtitle: "", OvInitiative: "", OvStatus: "", OvSections: [{ sectionTitle: "", points: [""] }], OvEntryFee: "", OvEntryFeeNote: "", OvYouTubeLink: "" });
-    setAddBrochureFile(""); setAddFormTab("event");
+    setAddFormTab("event");
+    setAddEventPdfFile("");
+    setEventType("individual");
+    setTeams([emptyTeam()]);
     setShow(true);
   };
 
@@ -50,7 +200,6 @@ const AdminEvents = () => {
   const [Event, setEvent] = useState(true);
   const [Eventbanner, setEventbanner] = useState(false);
   const [Terms, setTerms] = useState(false);
-  const [Brochures, setBrochures] = useState(false);
   const [HeroBannerTab, setHeroBannerTab] = useState(false);
   const [CategoryTab, setCategoryTab] = useState(false);
   const [EventInfoTab, setEventInfoTab] = useState(false);
@@ -70,6 +219,10 @@ const AdminEvents = () => {
   // Categories for the event
   const [addCategories, setAddCategories] = useState([{ CategoryName: "", CategoryPrice: "", TotalPlayers: 1, CategoryType: "" }]);
 
+  // Event type: "individual" (categories) or "team" (organisation + players)
+  const [EventType, setEventType] = useState("individual");
+  const [teams, setTeams] = useState([emptyTeam()]);
+
   // Event Info for the event
   const [addEventInfo, setAddEventInfo] = useState({
     Venue: "", OrganizerName: "", OrganizerEmail: "",
@@ -84,8 +237,8 @@ const AdminEvents = () => {
   // Tab inside Edit Event modal
   const [editFormTab, setEditFormTab] = useState("event");
 
-  // Brochure file for the event
-  const [addBrochureFile, setAddBrochureFile] = useState("");
+  // Event PDF — the document used by the "Download PDF" button on the tournaments page
+  const [addEventPdfFile, setAddEventPdfFile] = useState("");
 
   const AddEventDetails = async () => {
     try {
@@ -96,9 +249,21 @@ const AdminEvents = () => {
       if (!Time) return alert("Please select Time");
       if (!EventLocation) return alert("Please add Event Location");
 
-      // Validate at least one category
+      // Validate at least one category (individual) or one team (team event)
       const validCats = addCategories.filter(c => c.CategoryName && c.CategoryPrice);
-      if (validCats.length === 0) return alert("Please add at least one category with name and price");
+      const validTeams = teams
+        .filter(t => Number(t.Price) > 0)
+        .map(t => ({
+          Price: Number(t.Price) || 0,
+          TotalPlayers: Number(t.TotalPlayers) || 1,
+          Limit: Number(t.Limit) || 0,
+        }));
+
+      if (EventType === "team") {
+        if (validTeams.length === 0) return alert("Please add at least one team entry with a price");
+      } else if (validCats.length === 0) {
+        return alert("Please add at least one category with name and price");
+      }
 
       const fd = new FormData();
       fd.append("EventImage", EventImage);
@@ -108,9 +273,11 @@ const AdminEvents = () => {
       fd.append("EventLocation", EventLocation);
       fd.append("EventExhibits", EventExhibits);
       fd.append("Time", Time);
-      fd.append("Categories", JSON.stringify(validCats));
+      fd.append("EventType", EventType);
+      fd.append("Categories", JSON.stringify(EventType === "team" ? [] : validCats));
+      fd.append("Teams", JSON.stringify(EventType === "team" ? validTeams : []));
       fd.append("EventInfo", JSON.stringify(addEventInfo));
-      if (addBrochureFile) fd.append("Brochure", addBrochureFile);
+      if (addEventPdfFile) fd.append("EventPdf", addEventPdfFile);
 
       const config = {
         url: "admin/events",
@@ -126,7 +293,7 @@ const AdminEvents = () => {
         handleClose();
         setAddCategories([{ CategoryName: "", CategoryPrice: "", TotalPlayers: 1, CategoryType: "" }]);
         setAddEventInfo({ Venue: "", OrganizerName: "", OrganizerEmail: "", OvTitle: "", OvSubtitle: "", OvInitiative: "", OvStatus: "", OvSections: [{ sectionTitle: "", points: [""] }], OvEntryFee: "", OvEntryFeeNote: "", OvYouTubeLink: "" });
-        setAddBrochureFile("");
+        setAddEventPdfFile("");
         setAddFormTab("event");
       }
     } catch (error) {
@@ -188,8 +355,10 @@ const AdminEvents = () => {
     setTime(item?.Time);
     // Load embedded categories and event info
     setAddCategories(item?.Categories?.length > 0 ? item.Categories : [{ CategoryName: "", CategoryPrice: "", TotalPlayers: 1, CategoryType: "", Limit: 0 }]);
+    setEventType(item?.EventType || "individual");
+    setTeams(item?.Teams?.length > 0 ? item.Teams : [emptyTeam()]);
     setAddEventInfo(item?.EventInfo || { Venue: "", OrganizerName: "", OrganizerEmail: "", OvTitle: "", OvSubtitle: "", OvInitiative: "", OvStatus: "", OvSections: [{ sectionTitle: "", points: [""] }], OvEntryFee: "", OvEntryFeeNote: "", OvYouTubeLink: "" });
-    setAddBrochureFile("");
+    setAddEventPdfFile("");
     setEditFormTab("event");
   };
 
@@ -205,9 +374,21 @@ const AdminEvents = () => {
       fd.append("EventExhibits", EventExhibits);
       fd.append("Time", Time);
       fd.append("id", Data1?._id);
-      fd.append("Categories", JSON.stringify(addCategories.filter(c => c.CategoryName)));
+      fd.append("EventType", EventType);
+      fd.append("Categories", JSON.stringify(EventType === "team" ? [] : addCategories.filter(c => c.CategoryName)));
+      fd.append("Teams", JSON.stringify(
+        EventType === "team"
+          ? teams
+              .filter(t => Number(t.Price) > 0)
+              .map(t => ({
+                Price: Number(t.Price) || 0,
+                TotalPlayers: Number(t.TotalPlayers) || 1,
+                Limit: Number(t.Limit) || 0,
+              }))
+          : []
+      ));
       fd.append("EventInfo", JSON.stringify(addEventInfo));
-      if (addBrochureFile) fd.append("Brochure", addBrochureFile);
+      if (addEventPdfFile) fd.append("EventPdf", addEventPdfFile);
 
       const config = {
         url: "admin/editevents",
@@ -294,111 +475,6 @@ const AdminEvents = () => {
       setAddEvents(nochangedata1);
     }
   };
-
-  // ==============EVENTS BROCHURES==============================//
-  const [View, setView] = useState({});
-  const [showFile, setShowFile] = useState();
-  const handleCloseFile = () => setShowFile(false);
-  const handleShowFile = () => setShowFile(true);
-
-  const [showB, setShowB] = useState();
-  const handleCloseB = () => setShowB(false);
-  const handleShowB = () => setShowB(true);
-
-  const [showD, setShowD] = useState();
-  const handleCloseD = () => setShowD(false);
-  const handleShowD = () => setShowD(true);
-
-  const [Brochure, setBrochure] = useState("");
-
-  const AddBrochurefile = async () => {
-    const formdata = new FormData();
-    formdata.append("Brochure", Brochure);
-    try {
-      if (!Brochure) {
-        return alert("please add Brochure Document");
-      }
-      const config = {
-        url: "admin/brochures",
-        method: "post",
-        baseURL: `${process.env.REACT_APP_API_URL}/api/`,
-        header: { "content-type": "multipart/form-data" },
-        data: formdata,
-      };
-      let res = await axios(config);
-      if (res.status === 200) {
-        alert(res.data.success);
-        getAddBrochure();
-        handleCloseB();
-      }
-    } catch (error) {
-      console.log(error);
-      alert(error.response.data.msg);
-    }
-  };
-  //integrating get  method EVENTS BANNER
-  const [AddBrochure, setAddBrochure] = useState([]);
-  const getAddBrochure = async () => {
-    try {
-      let res = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/getbrochures`);
-      if (res.status === 200) {
-        setAddBrochure(res.data.getbrochures || []);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  //delete method EVENTS BANNER
-  const [Datad, setDatad] = useState("");
-  const DeletBrochure = async () => {
-    try {
-      const config = {
-        url: "admin/Deletebrochures/" + Datad,
-        method: "delete",
-        baseURL: `${process.env.REACT_APP_API_URL}/api/`,
-        header: { "content-type": "application/json" },
-      };
-      await axios(config).then((res) => {
-        if (res.status === 200) {
-          alert("Successfully Delete");
-          getAddBrochure();
-          handleCloseD();
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      alert(error.response.data.msg);
-    }
-  };
-
-  useEffect(() => {
-    getAddBrochure();
-  }, []);
-
-  const [currenpage4, setCurrentpage4] = useState(1);
-  const recordsperpage4 = 5;
-  const lastIndex4 = currenpage4 * recordsperpage4;
-  const firstIndex4 = lastIndex4 - recordsperpage4;
-  const records4 = (AddBrochure || []).slice(firstIndex4, lastIndex4);
-  const npages4 = Math.ceil((AddBrochure?.length || 0) / recordsperpage4);
-  const numbers4 = [...Array(Math.max(npages4, 0) + 1).keys()].slice(1);
-
-  function changePage(id) {
-    setCurrentpage4(id);
-  }
-
-  function prevpage() {
-    if (currenpage4 !== firstIndex4) {
-      setCurrentpage4(currenpage4 - 1);
-    }
-  }
-
-  function nextpage() {
-    if (currenpage4 !== lastIndex4) {
-      setCurrentpage4(currenpage4 + 1);
-    }
-  }
 
   // ==============EVENTS HERO BANNER==============================//
   const [HeroImage,       setHeroImage]       = useState("");
@@ -842,9 +918,9 @@ const AdminEvents = () => {
   return (
     <div>
       <div className="d-flex gap-3 mb-3 flex-wrap">
-        <Button onClick={() => { setEvent(true); setEventbanner(false); setTerms(false); setBrochures(false); setHeroBannerTab(false); setCategoryTab(false); setEventInfoTab(false); }}>Events</Button>
-        <Button onClick={() => { setEvent(false); setEventbanner(true); setTerms(false); setBrochures(false); setHeroBannerTab(false); setCategoryTab(false); setEventInfoTab(false); }}>Coming Soon Banner</Button>
-        <Button onClick={() => { setEvent(false); setEventbanner(false); setTerms(false); setBrochures(false); setHeroBannerTab(true); setCategoryTab(false); setEventInfoTab(false); }}>Hero Banner</Button>
+        <Button onClick={() => { setEvent(true); setEventbanner(false); setTerms(false); setHeroBannerTab(false); setCategoryTab(false); setEventInfoTab(false); }}>Events</Button>
+        <Button onClick={() => { setEvent(false); setEventbanner(true); setTerms(false); setHeroBannerTab(false); setCategoryTab(false); setEventInfoTab(false); }}>Coming Soon Banner</Button>
+        <Button onClick={() => { setEvent(false); setEventbanner(false); setTerms(false); setHeroBannerTab(true); setCategoryTab(false); setEventInfoTab(false); }}>Hero Banner</Button>
       </div>
 
       {/* ======================EVENTS======================== */}
@@ -906,13 +982,33 @@ const AdminEvents = () => {
                             style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px" }}
                           />
                         </td>
-                        <td style={{ padding: "12px", fontWeight: 700, color: "#031B77", maxWidth: "180px" }}>{item.EventName}</td>
+                        <td style={{ padding: "12px", fontWeight: 700, color: "#031B77", maxWidth: "180px" }}>
+                          {item.EventName}
+                          <span
+                            className={`event-type-badge event-type-badge--${item.EventType === "team" ? "team" : "individual"}`}
+                          >
+                            {item.EventType === "team" ? "Team" : "Individual"}
+                          </span>
+                        </td>
                         <td style={{ padding: "12px", fontSize: "13px" }}>{formatDate(item.EventStartdate)}</td>
                         <td style={{ padding: "12px", fontSize: "13px" }}>{formatDate(item.EventEnddate)}</td>
                         <td style={{ padding: "12px", fontSize: "13px" }}>{convertTo12HourFormat(item.Time)}</td>
                         <td style={{ padding: "12px", fontSize: "13px" }}>{item.EventLocation}</td>
                         <td style={{ padding: "12px", fontSize: "12px" }}>
-                          {item.Categories?.length > 0
+                          {item.EventType === "team"
+                            ? (item.Teams?.length > 0
+                              ? item.Teams.map((t, ti) => (
+                                <div key={ti} style={{ marginBottom: "3px" }}>
+                                  <span style={{ fontWeight: 600 }}>Team Entry {ti + 1}</span>
+                                  {t.Price > 0 && (
+                                    <span style={{ color: "#031B77", fontWeight: 700, marginLeft: "6px" }}>
+                                      ₹{t.Price}
+                                    </span>
+                                  )}
+                                </div>
+                              ))
+                              : <span style={{ color: "#aaa" }}>—</span>)
+                            : item.Categories?.length > 0
                             ? item.Categories.map((c, ci) => (
                               <div key={ci} style={{ marginBottom: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
                                 <span style={{ fontWeight: 600 }}>{c.CategoryName}</span>
@@ -962,18 +1058,20 @@ const AdminEvents = () => {
                               onClick={() => { if (getEventStatus(item).label !== "Completed") { handleShow4(); setData(item?._id); } }}
                               title={getEventStatus(item).label === "Completed" ? "Cannot delete completed event" : "Delete"}
                             />
-                            {hiddenEvents.includes(item?._id) ? (
-                              <MdClose
-                                style={{ cursor: "pointer", fontSize: "20px", color: "#e31e24" }}
-                                onClick={() => unhideEventFromUI(item?._id)}
-                                title="Hidden from website — click to show"
-                              />
-                            ) : (
-                              <IoEye
-                                style={{ cursor: "pointer", fontSize: "20px", color: "#16a34a" }}
-                                onClick={() => hideEventFromUI(item?._id)}
-                                title="Showing on website — click to hide"
-                              />
+                            {getEventStatus(item).label !== "Completed" && (
+                              hiddenEvents.includes(item?._id) ? (
+                                <MdClose
+                                  style={{ cursor: "pointer", fontSize: "20px", color: "#e31e24" }}
+                                  onClick={() => unhideEventFromUI(item?._id)}
+                                  title="Hidden from website — click to show"
+                                />
+                              ) : (
+                                <IoEye
+                                  style={{ cursor: "pointer", fontSize: "20px", color: "#16a34a" }}
+                                  onClick={() => hideEventFromUI(item?._id)}
+                                  title="Showing on website — click to hide"
+                                />
+                              )
                             )}
                           </div>
                         </td>
@@ -990,6 +1088,24 @@ const AdminEvents = () => {
                 <Modal.Title style={{ color: "black" }}>Add Event</Modal.Title>
               </Modal.Header>
               <Modal.Body>
+                {/* ── Event type ── */}
+                <div className="event-type-toggle">
+                  <button
+                    type="button"
+                    className={`event-type-btn${EventType === "individual" ? " is-on" : ""}`}
+                    onClick={() => setEventType("individual")}
+                  >
+                    Individual Event
+                  </button>
+                  <button
+                    type="button"
+                    className={`event-type-btn${EventType === "team" ? " is-on" : ""}`}
+                    onClick={() => setEventType("team")}
+                  >
+                    Team Event
+                  </button>
+                </div>
+
                 {/* ── Tabs ── */}
                 <div className="d-flex gap-2 mb-3" style={{ borderBottom: "2px solid #e4e8f8", paddingBottom: "10px" }}>
                   <button onClick={() => setAddFormTab("event")}
@@ -1000,17 +1116,12 @@ const AdminEvents = () => {
                   <button onClick={() => setAddFormTab("category")}
                     style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer",
                       background: addFormTab === "category" ? "#031B77" : "#f0f4ff", color: addFormTab === "category" ? "#fff" : "#031B77" }}>
-                    Categories
+                    {EventType === "team" ? "Teams" : "Categories"}
                   </button>
                   <button onClick={() => setAddFormTab("overview")}
                     style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer",
                       background: addFormTab === "overview" ? "#031B77" : "#f0f4ff", color: addFormTab === "overview" ? "#fff" : "#031B77" }}>
                     Tournament Overview
-                  </button>
-                  <button onClick={() => setAddFormTab("brochure")}
-                    style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer",
-                      background: addFormTab === "brochure" ? "#031B77" : "#f0f4ff", color: addFormTab === "brochure" ? "#fff" : "#031B77" }}>
-                    Brochure
                   </button>
                 </div>
 
@@ -1025,6 +1136,13 @@ const AdminEvents = () => {
                     <label>Event Name *</label>
                     <input type="text" className="vi_0" placeholder="Enter Event Name" value={EventName} onChange={(e) => setEventName(e.target.value)} />
                   </div>
+                  <BrochureUploadField
+                    label="Event PDF"
+                    file={addEventPdfFile}
+                    onChange={setAddEventPdfFile}
+                    emptyTitle="Upload the event PDF"
+                    hint="This is the document behind the red “Download PDF” button on the tournaments page."
+                  />
                   <div className="col-md-6 do-sear mt-2">
                     <label>Start Date *</label>
                     <input type="date" className="vi_0" value={EventStartdate} onChange={(e) => setEventStartdate(e.target.value)} />
@@ -1044,8 +1162,11 @@ const AdminEvents = () => {
                 </div>
                 )}
 
-                {/* ── TAB 2: Categories ── */}
+                {/* ── TAB 2: Categories (individual) / Teams (team event) ── */}
                 {addFormTab === "category" && (
+                  EventType === "team" ? (
+                    <TeamFields teams={teams} setTeams={setTeams} />
+                  ) : (
                 <div>
                 {addCategories.map((cat, idx) => (
                   <div key={idx} style={{ background: "#ffffff", borderRadius: "12px", padding: "20px", marginBottom: "16px", border: "2px solid #e4e8f8", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
@@ -1099,6 +1220,7 @@ const AdminEvents = () => {
                   + Add Category
                 </button>
                 </div>
+                  )
                 )}
 
                 {/* ── TAB 3: Tournament Overview ── */}
@@ -1112,33 +1234,14 @@ const AdminEvents = () => {
                   </div>
                   <div className="col-md-12 do-sear mt-2">
                     <label>Tournament Description</label>
-                    <textarea className="vi_0" rows="8" placeholder="e.g. Initiative by GOPICHAND BADMINTON GRASSROOT ACADEMY..." value={addEventInfo.OvInitiative}
-                      style={{ resize: "both", minHeight: "200px" }}
-                      onChange={(e) => setAddEventInfo({...addEventInfo, OvInitiative: e.target.value})} />
+                    <RichTextEditor
+                      value={addEventInfo.OvInitiative}
+                      onChange={(html) => setAddEventInfo({ ...addEventInfo, OvInitiative: html })}
+                      placeholder="e.g. Initiative by GOPICHAND BADMINTON GRASSROOT ACADEMY..."
+                      minHeight={200}
+                    />
                   </div>
                 </div>
-                </div>
-                )}
-
-                {/* ── TAB 4: Brochure ── */}
-                {addFormTab === "brochure" && (
-                <div>
-                  <div className="do-sear mt-2">
-                    <label>Upload Brochure (PDF or Image)</label>
-                    <input type="file" className="vi_0" accept=".pdf,.jpg,.jpeg,.png,.webp"
-                      onChange={(e) => setAddBrochureFile(e.target.files[0])} />
-                    <small style={{ color: "#888", fontSize: "12px" }}>Accepted: PDF, JPG, PNG, WEBP</small>
-                  </div>
-                  {addBrochureFile && (
-                    <div style={{ marginTop: "12px", padding: "10px", background: "#f0f4ff", borderRadius: "8px", border: "1px solid #e4e8f8" }}>
-                      <span style={{ fontSize: "13px", color: "#031B77", fontWeight: 600 }}>
-                        ✅ {addBrochureFile.name}
-                      </span>
-                    </div>
-                  )}
-                  <p style={{ marginTop: "12px", fontSize: "13px", color: "#666" }}>
-                    This brochure will be shown on the registration page below the tournament overview for download.
-                  </p>
                 </div>
                 )}
 
@@ -1155,12 +1258,29 @@ const AdminEvents = () => {
                 <Modal.Title style={{ color: "black" }}>Edit Event</Modal.Title>
               </Modal.Header>
               <Modal.Body>
+                {/* Event type */}
+                <div className="event-type-toggle">
+                  <button
+                    type="button"
+                    className={`event-type-btn${EventType === "individual" ? " is-on" : ""}`}
+                    onClick={() => setEventType("individual")}
+                  >
+                    Individual Event
+                  </button>
+                  <button
+                    type="button"
+                    className={`event-type-btn${EventType === "team" ? " is-on" : ""}`}
+                    onClick={() => setEventType("team")}
+                  >
+                    Team Event
+                  </button>
+                </div>
+
                 {/* Tabs */}
                 <div className="d-flex gap-2 mb-3" style={{ borderBottom: "2px solid #e4e8f8", paddingBottom: "10px" }}>
                   <button onClick={() => setEditFormTab("event")} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", background: editFormTab === "event" ? "#031B77" : "#f0f4ff", color: editFormTab === "event" ? "#fff" : "#031B77" }}>Event Details</button>
-                  <button onClick={() => setEditFormTab("category")} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", background: editFormTab === "category" ? "#031B77" : "#f0f4ff", color: editFormTab === "category" ? "#fff" : "#031B77" }}>Categories</button>
+                  <button onClick={() => setEditFormTab("category")} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", background: editFormTab === "category" ? "#031B77" : "#f0f4ff", color: editFormTab === "category" ? "#fff" : "#031B77" }}>{EventType === "team" ? "Teams" : "Categories"}</button>
                   <button onClick={() => setEditFormTab("overview")} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", background: editFormTab === "overview" ? "#031B77" : "#f0f4ff", color: editFormTab === "overview" ? "#fff" : "#031B77" }}>Tournament Overview</button>
-                  <button onClick={() => setEditFormTab("brochure")} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", background: editFormTab === "brochure" ? "#031B77" : "#f0f4ff", color: editFormTab === "brochure" ? "#fff" : "#031B77" }}>Brochure</button>
                 </div>
 
                 {/* TAB 1: Event Details */}
@@ -1168,6 +1288,14 @@ const AdminEvents = () => {
                 <div className="row">
                   <div className="col-md-12 do-sear mt-2"><label>Event Image (leave empty to keep current)</label><input type="file" className="vi_0" onChange={(e) => setEventImage(e.target.files[0])} /></div>
                   <div className="col-md-12 do-sear mt-2"><label>Event Name *</label><input type="text" className="vi_0" value={EventName} onChange={(e) => setEventName(e.target.value)} /></div>
+                  <BrochureUploadField
+                    label="Event PDF"
+                    file={addEventPdfFile}
+                    onChange={setAddEventPdfFile}
+                    existingFile={Data1?.EventPdf}
+                    emptyTitle="Upload the event PDF"
+                    hint="Leave empty to keep the current file. This is the document behind the red “Download PDF” button on the tournaments page."
+                  />
                   <div className="col-md-6 do-sear mt-2"><label>Start Date *</label><input type="date" className="vi_0" value={EventStartdate} onChange={(e) => setEventStartdate(e.target.value)} /></div>
                   <div className="col-md-6 do-sear mt-2"><label>End Date *</label><input type="date" className="vi_0" value={EventEnddate} onChange={(e) => setEventEnddate(e.target.value)} /></div>
                   <div className="col-md-6 do-sear mt-2"><label>Time *</label><input type="time" className="vi_0" value={Time} onChange={(e) => setTime(e.target.value)} /></div>
@@ -1175,8 +1303,11 @@ const AdminEvents = () => {
                 </div>
                 )}
 
-                {/* TAB 2: Categories */}
+                {/* TAB 2: Categories (individual) / Teams (team event) */}
                 {editFormTab === "category" && (
+                  EventType === "team" ? (
+                    <TeamFields teams={teams} setTeams={setTeams} />
+                  ) : (
                 <div>
                 {addCategories.map((cat, idx) => (
                   <div key={idx} style={{ background: "#ffffff", borderRadius: "12px", padding: "20px", marginBottom: "16px", border: "2px solid #e4e8f8" }}>
@@ -1198,6 +1329,7 @@ const AdminEvents = () => {
                 ))}
                 <button style={{ background: "#031B77", color: "#fff", border: "none", borderRadius: "8px", padding: "12px 28px", fontSize: "14px", fontWeight: 700, cursor: "pointer" }} onClick={() => setAddCategories([...addCategories, { CategoryName: "", CategoryPrice: "", TotalPlayers: 1, CategoryType: "", Limit: 0 }])}>+ Add Category</button>
                 </div>
+                  )
                 )}
 
                 {/* TAB 3: Tournament Overview */}
@@ -1205,27 +1337,20 @@ const AdminEvents = () => {
                 <div>
                 <div className="row">
                   <div className="col-md-12 do-sear mt-2"><label>Venue</label><input type="text" className="vi_0" value={addEventInfo.Venue || ""} onChange={(e) => setAddEventInfo({...addEventInfo, Venue: e.target.value})} /></div>
-                  <div className="col-md-12 do-sear mt-2"><label>Tournament Description</label><textarea className="vi_0" rows="8" style={{ resize: "both", minHeight: "200px" }} value={addEventInfo.OvInitiative || ""} onChange={(e) => setAddEventInfo({...addEventInfo, OvInitiative: e.target.value})} /></div>
+                  <div className="col-md-12 do-sear mt-2">
+                    <label>Tournament Description</label>
+                    <RichTextEditor
+                      key={Data1?._id || "edit"}
+                      value={addEventInfo.OvInitiative || ""}
+                      onChange={(html) => setAddEventInfo({ ...addEventInfo, OvInitiative: html })}
+                      placeholder="e.g. Initiative by GOPICHAND BADMINTON GRASSROOT ACADEMY..."
+                      minHeight={200}
+                    />
+                  </div>
                 </div>
                 </div>
                 )}
 
-                {/* TAB 4: Brochure */}
-                {editFormTab === "brochure" && (
-                <div>
-                  <div className="do-sear mt-2"><label>Upload Brochure (PDF or Image)</label><input type="file" className="vi_0" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={(e) => setAddBrochureFile(e.target.files[0])} /></div>
-                  {Data1?.Brochure && !addBrochureFile && (
-                    <div style={{ marginTop: "12px", padding: "10px", background: "#f0f4ff", borderRadius: "8px" }}>
-                      <span style={{ fontSize: "13px", color: "#031B77", fontWeight: 600 }}>Current: {Data1.Brochure}</span>
-                    </div>
-                  )}
-                  {addBrochureFile && (
-                    <div style={{ marginTop: "12px", padding: "10px", background: "#f0f4ff", borderRadius: "8px" }}>
-                      <span style={{ fontSize: "13px", color: "#031B77", fontWeight: 600 }}>New: {addBrochureFile.name}</span>
-                    </div>
-                  )}
-                </div>
-                )}
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="" className="modal-close-btn" onClick={handleClose3}>Close</Button>
@@ -1323,202 +1448,6 @@ const AdminEvents = () => {
         <></>
       )}
 
-      {/* ==============EVENT BROCHURES==================== */}
-
-      {Brochures ? (
-        <>
-          <div>
-            <div className="d-flex justify-content-between align-items-center">
-              <h2 className="header-c ">Event Brochures</h2>
-
-              <div>
-                {AddBrochure?.length !== 0 ? (
-                  ""
-                ) : (
-                  <>
-                    <button className="admin-add-btn" onClick={handleShowB}>
-                      Add Brochures
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="mb-3">
-              <Table
-                responsive
-                bordered
-                style={{ width: "-webkit-fill-available" }}
-              >
-                <thead>
-                  <tr>
-                    <th>Documents</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {records4?.map((item, i) => {
-                    return (
-                      <tr key={i}>
-                        <td style={{ paddingTop: "20px" }}>
-                          <IoEye
-                            style={{ fontSize: "20px", color: "#031B77" }}
-                            onClick={() => {
-                              handleShowFile();
-                              setView(item);
-                            }}
-                          />
-                        </td>
-                        <td>
-                          {" "}
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "20px",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <div>
-                              <AiFillDelete
-                                className="text-danger"
-                                style={{ cursor: "pointer", fontSize: "20px" }}
-                                onClick={() => {
-                                  handleShowD();
-                                  setDatad(item?._id);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </div>
-
-            {/* Add Brochures modal */}
-            <Modal
-              show={showB}
-              onHide={handleCloseB}
-              style={{ zIndex: "99999" }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title style={{ color: "black" }}>
-                  Add Brochures
-                </Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                <div className="row">
-                  <div className="do-sear mt-2">
-                    <label>Add Event Brochures</label>
-                    <input
-                      type="file"
-                      className="vi_0"
-                      onChange={(e) => setBrochure(e.target.files[0])}
-                    />
-                  </div>
-                </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <div className="d-flex">
-                  <Button
-                    className="mx-2 modal-close-btn"
-                    variant=""
-                    onClick={handleCloseB}
-                  >
-                    Close
-                  </Button>
-                  <Button
-                    className="mx-2 modal-add-btn"
-                    variant=""
-                    onClick={AddBrochurefile}
-                  >
-                    Add
-                  </Button>
-                </div>
-              </Modal.Footer>
-            </Modal>
-
-            {/* Delet event banner modal  */}
-            <Modal
-              show={showD}
-              onHide={handleCloseD}
-              backdrop="static"
-              keyboard={false}
-              style={{ zIndex: "99999" }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>Warning</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                <div className="row">
-                  <div className="col-md-12">
-                    <p className="fs-4" style={{ color: "red" }}>
-                      Are you sure?
-                      <br /> you want to delete this data?
-                    </p>
-                  </div>
-                </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                  variant=""
-                  className="modal-close-btn"
-                  onClick={handleCloseD}
-                >
-                  Close
-                </Button>
-                <Button
-                  variant=""
-                  className="modal-add-btn"
-                  onClick={DeletBrochure}
-                >
-                  Delete
-                </Button>
-              </Modal.Footer>
-            </Modal>
-
-            {/* View Brochure Documents modal */}
-            <Modal
-              show={showFile}
-              onHide={handleCloseFile}
-              backdrop="static"
-              keyboard={false}
-              style={{ zIndex: "99999" }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title style={{ color: "black" }}>
-                  Event Brochures
-                </Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                <div className="row">
-                  <div className="col-md-12">
-                    <iframe
-                      src={`${process.env.REACT_APP_API_URL}/Events/${View?.Brochure}`}
-                      style={{ width: "100%", height: "500px" }}
-                      title={`Brochure `}
-                    ></iframe>
-                  </div>
-                </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                  variant=""
-                  className="modal-close-btn"
-                  onClick={handleCloseFile}
-                >
-                  Close
-                </Button>
-              </Modal.Footer>
-            </Modal>
-          </div>
-        </>
-      ) : (
-        <></>
-      )}
 
       {/* ==============TERMS & CONDITION==================== */}
 

@@ -14,6 +14,7 @@ import Results from "./Components/Results";
 import Ranking from "./Components/Ranking";
 import RankingDetail from "./Components/RankingDetail";
 import Gallery from "./Components/Gallery";
+import Podcast from "./Components/Podcast";
 import Contactus from "./Components/Contactus";
 
 import Dashboard from "./Components/Admin/Dashboard";
@@ -46,6 +47,8 @@ import ReturnPolicy from "./Components/ReturnPolicy";
 import AdminEventHeroBanner from "./Components/Admin/AdminEventHeroBanner";
 import AdminEventInfo from "./Components/Admin/AdminEventInfo";
 import AdminRanking from "./Components/Admin/AdminRanking";
+import AdminPodcast from "./Components/Admin/AdminPodcast";
+import AdminPodcastHeroBanner from "./Components/Admin/AdminPodcastHeroBanner";
 
 function App() {
   return (
@@ -149,6 +152,17 @@ function App() {
               <>
                 <Header />
                 <Gallery />
+                <Footer />
+              </>
+            }
+          />
+
+          <Route
+            path="/podcast"
+            element={
+              <>
+                <Header />
+                <Podcast />
                 <Footer />
               </>
             }
@@ -429,6 +443,12 @@ function App() {
           />
           <Route path="/admin_ranking"
             element={<Main children={<><AdminRanking /></>} />} />
+
+          <Route path="/admin_podcast"
+            element={<Main children={<><AdminPodcast /></>} />} />
+
+          <Route path="/admin_podcast_banner"
+            element={<Main children={<><AdminPodcastHeroBanner /></>} />} />
         </Routes>
       </BrowserRouter>
     </div>

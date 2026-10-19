@@ -43,6 +43,7 @@ const RegistrationList = () => {
               EventStartdate: reg?.eventsId?.EventStartdate,
               EventEnddate: reg?.eventsId?.EventEnddate,
               Categories: reg?.eventsId?.Categories || [],
+              EventType: reg?.eventsId?.EventType || "individual",
               registrationCount: 0,
               paidCount: 0,
             };
@@ -107,6 +108,14 @@ const RegistrationList = () => {
     return [];
   };
 
+  // Every registration for the selected event (paid + pending)
+  const getEventRegistrations = () => {
+    if (!selectedEvent) return [];
+    return allRegistrations.filter(
+      (reg) => reg?.eventsId?._id === selectedEvent._id
+    );
+  };
+
   // Get paid students for selected event
   const getPaidStudents = () => {
     if (!selectedEvent) return [];
@@ -119,7 +128,7 @@ const RegistrationList = () => {
 
   // Get unique categories for the selected event (from registrations)
   const getEventCategories = () => {
-    const students = getPaidStudents();
+    const students = getEventRegistrations();
     const catSet = new Set();
     students.forEach((reg) => {
       getCategoryNames(reg).forEach((name) => catSet.add(name));
@@ -129,7 +138,7 @@ const RegistrationList = () => {
 
   // Filter students by category
   const getFilteredStudents = () => {
-    let students = getPaidStudents();
+    let students = getEventRegistrations();
     // Category filter
     if (categoryFilter !== "all") {
       students = students.filter((reg) =>
@@ -142,6 +151,7 @@ const RegistrationList = () => {
       students = students.filter((reg) => {
         return (
           (reg.playerNames && Object.values(reg.playerNames).join(" ").toLowerCase().includes(term)) ||
+          (reg.OrganisationName && reg.OrganisationName.toLowerCase().includes(term)) ||
           reg.PlayerEmail?.toLowerCase().includes(term) ||
           reg.PlayerPhoneNo?.toLowerCase().includes(term) ||
           getCategoryNames(reg).join(" ").toLowerCase().includes(term)
@@ -240,6 +250,8 @@ const RegistrationList = () => {
             dataToExport.push({
               "Event Name": selectedEvent?.EventName || "",
               "Event Date": formatDate(selectedEvent?.EventStartdate) + (selectedEvent?.EventEnddate ? ` – ${formatDate(selectedEvent?.EventEnddate)}` : ""),
+              "Event Type": selectedEvent?.EventType === "team" ? "Team" : "Individual",
+              "Organisation": item.OrganisationName || "",
               "Category": group.catName,
               "Player Name": p.name,
               "Phone Number": p.phone,
@@ -257,6 +269,8 @@ const RegistrationList = () => {
           dataToExport.push({
             "Event Name": selectedEvent?.EventName || "",
             "Event Date": formatDate(selectedEvent?.EventStartdate) + (selectedEvent?.EventEnddate ? ` – ${formatDate(selectedEvent?.EventEnddate)}` : ""),
+            "Event Type": selectedEvent?.EventType === "team" ? "Team" : "Individual",
+            "Organisation": item.OrganisationName || "",
             "Category": getCategoryNames(item).join(", "),
             "Player Name": name,
             "Phone Number": idx === 0 ? (item.PlayerPhoneNo || "") : "",
@@ -327,6 +341,8 @@ const RegistrationList = () => {
                 <th style={{ width: "60px" }}>SL.NO</th>
                 <th>Event Name</th>
                 <th>Event Date</th>
+                <th style={{ width: "110px", textAlign: "center" }}>Type</th>
+                <th style={{ width: "130px", textAlign: "center" }}>Registrations</th>
                 <th style={{ width: "120px", textAlign: "center" }}>Total Paid</th>
                 <th style={{ width: "100px", textAlign: "center" }}>Action</th>
               </tr>
@@ -345,6 +361,17 @@ const RegistrationList = () => {
                           {formatDate(ev.EventEnddate)}
                         </>
                       )}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <span
+                        className={`event-type-badge event-type-badge--${ev.EventType === "team" ? "team" : "individual"}`}
+                        style={{ marginLeft: 0 }}
+                      >
+                        {ev.EventType === "team" ? "Team" : "Individual"}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center", fontWeight: 700, color: "#031B77" }}>
+                      {ev.registrationCount}
                     </td>
                     <td style={{ textAlign: "center", fontWeight: 700, color: "#28a745" }}>
                       {ev.paidCount}
@@ -368,7 +395,7 @@ const RegistrationList = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "20px", color: "#999" }}>
                     No events found
                   </td>
                 </tr>
@@ -391,11 +418,20 @@ const RegistrationList = () => {
                 <BsArrowLeft /> Back
               </button>
               <div>
-                <h2 className="header-c mb-0">{selectedEvent?.EventName}</h2>
+                <h2 className="header-c mb-0">
+                  {selectedEvent?.EventName}
+                  <span
+                    className={`event-type-badge event-type-badge--${selectedEvent?.EventType === "team" ? "team" : "individual"}`}
+                    style={{ marginLeft: "10px", verticalAlign: "middle" }}
+                  >
+                    {selectedEvent?.EventType === "team" ? "Team" : "Individual"}
+                  </span>
+                </h2>
                 <small style={{ color: "#666" }}>
                   {formatDate(selectedEvent?.EventStartdate)}
                   {selectedEvent?.EventEnddate && ` – ${formatDate(selectedEvent?.EventEnddate)}`}
-                  {" • "}<strong>{filteredStudents.length}</strong> paid registration{filteredStudents.length !== 1 ? "s" : ""}
+                  {" • "}<strong>{filteredStudents.length}</strong> registration{filteredStudents.length !== 1 ? "s" : ""}
+                  {" • "}<span style={{ color: "#28a745", fontWeight: 700 }}>{getPaidStudents().length} paid</span>
                 </small>
               </div>
             </div>
@@ -443,6 +479,9 @@ const RegistrationList = () => {
             <thead>
               <tr>
                 <th style={{ width: "60px" }}>SL.NO</th>
+                {selectedEvent?.EventType === "team" && (
+                  <th style={{ minWidth: "150px" }}>Organisation</th>
+                )}
                 <th>Players Name</th>
                 <th>Phone Number</th>
                 <th>Email ID</th>
@@ -456,174 +495,136 @@ const RegistrationList = () => {
             <tbody>
               {records.length > 0 ? (
                 records.map((item, i) => {
-                  // Group players by category from catForms
-                  let categoryGroups = [];
+                  const isTeam = selectedEvent?.EventType === "team";
+
+                  // Flatten this registration into one line per player
+                  let playerRows = [];
                   if (item.catForms && item.catForms.length > 0) {
                     item.catForms.forEach((form) => {
-                      form.entries?.forEach((entry) => {
-                        categoryGroups.push({
-                          catName: form.catName,
-                          players: entry,
+                      (form.entries || []).forEach((entry) => {
+                        (entry || []).forEach((p) => {
+                          playerRows.push({
+                            name: p.name || "—",
+                            phone: p.phone || "",
+                            email: p.email || "",
+                            catName: form.catName || "—",
+                          });
                         });
                       });
                     });
                   }
-
-                  // If category filter is active, only show that category's players
-                  if (categoryFilter !== "all" && categoryGroups.length > 0) {
-                    categoryGroups = categoryGroups.filter((g) => g.catName === categoryFilter);
+                  if (playerRows.length === 0) {
+                    const names = item.playerNames ? Object.values(item.playerNames) : [];
+                    const cats = getCategoryNames(item).join(", ");
+                    playerRows = names.length
+                      ? names.map((n, idx) => ({
+                          name: n || "—",
+                          phone: idx === 0 ? item.PlayerPhoneNo || "" : "",
+                          email: idx === 0 ? item.PlayerEmail || "" : "",
+                          catName: cats || "—",
+                        }))
+                      : [{
+                          name: "—",
+                          phone: item.PlayerPhoneNo || "",
+                          email: item.PlayerEmail || "",
+                          catName: cats || "—",
+                        }];
                   }
+                  if (categoryFilter !== "all") {
+                    playerRows = playerRows.filter((r) => r.catName === categoryFilter);
+                  }
+                  if (playerRows.length === 0) return null;
 
-                  const ROW_HEIGHT = 26; // fixed height per player line
+                  const rowSpan = playerRows.length;
+                  const statusText = String(item.status || "").toLowerCase();
+                  const isPaid = statusText === "received" || statusText === "success";
+                  const isPending = statusText === "pending";
+                  const spanCell = {
+                    verticalAlign: "middle",
+                    textAlign: "center",
+                    borderLeft: "1px solid #dee2e6",
+                  };
 
-                  return (
-                    <tr key={item._id}>
-                      <td style={{ verticalAlign: "middle", textAlign: "center" }}>{i + 1 + firstIndex}</td>
-                      {/* Players Name */}
-                      <td style={{ verticalAlign: "top", padding: "8px 12px" }}>
-                        {categoryGroups.length > 0 ? (
-                          categoryGroups.map((group, gIdx) => (
-                            <div key={gIdx} style={{
-                              height: `${group.players.length * ROW_HEIGHT}px`,
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "center",
-                              borderBottom: gIdx < categoryGroups.length - 1 ? "1px dashed #ccc" : "none",
-                              marginBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                              paddingBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                            }}>
-                              {group.players.map((p, pIdx) => (
-                                <div key={pIdx} style={{ height: `${ROW_HEIGHT}px`, lineHeight: `${ROW_HEIGHT}px`, fontWeight: 600, fontSize: "13px" }}>{p.name}</div>
-                              ))}
-                            </div>
-                          ))
-                        ) : (
-                          item.playerNames
-                            ? Object.values(item.playerNames).map((name, idx) => (
-                                <div key={idx} style={{ height: `${ROW_HEIGHT}px`, lineHeight: `${ROW_HEIGHT}px`, fontWeight: 600, fontSize: "13px" }}>{name}</div>
-                              ))
-                            : "—"
-                        )}
-                      </td>
-                      {/* Phone Number */}
-                      <td style={{ verticalAlign: "top", padding: "8px 12px" }}>
-                        {categoryGroups.length > 0 ? (
-                          categoryGroups.map((group, gIdx) => (
-                            <div key={gIdx} style={{
-                              height: `${group.players.length * ROW_HEIGHT}px`,
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "center",
-                              borderBottom: gIdx < categoryGroups.length - 1 ? "1px dashed #ccc" : "none",
-                              marginBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                              paddingBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                            }}>
-                              {group.players.map((p, pIdx) => (
-                                <div key={pIdx} style={{ height: `${ROW_HEIGHT}px`, lineHeight: `${ROW_HEIGHT}px`, fontSize: "13px" }}>{p.phone}</div>
-                              ))}
-                            </div>
-                          ))
-                        ) : (
-                          <div style={{ height: `${ROW_HEIGHT}px`, lineHeight: `${ROW_HEIGHT}px`, fontSize: "13px" }}>{item.PlayerPhoneNo || "—"}</div>
-                        )}
-                      </td>
-                      {/* Email */}
-                      <td style={{ verticalAlign: "top", padding: "8px 12px" }}>
-                        {categoryGroups.length > 0 ? (
-                          categoryGroups.map((group, gIdx) => (
-                            <div key={gIdx} style={{
-                              height: `${group.players.length * ROW_HEIGHT}px`,
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "center",
-                              borderBottom: gIdx < categoryGroups.length - 1 ? "1px dashed #ccc" : "none",
-                              marginBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                              paddingBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                            }}>
-                              {group.players.map((p, pIdx) => (
-                                <div key={pIdx} style={{ height: `${ROW_HEIGHT}px`, lineHeight: `${ROW_HEIGHT}px`, fontSize: "13px" }}>{p.email}</div>
-                              ))}
-                            </div>
-                          ))
-                        ) : (
-                          <div style={{ height: `${ROW_HEIGHT}px`, lineHeight: `${ROW_HEIGHT}px`, fontSize: "13px" }}>{item.PlayerEmail || "—"}</div>
-                        )}
-                      </td>
-                      {/* Category */}
-                      <td style={{ verticalAlign: "top", padding: "8px 12px" }}>
-                        {categoryGroups.length > 0 ? (
-                          categoryGroups.map((group, gIdx) => (
-                            <div key={gIdx} style={{
-                              height: `${group.players.length * ROW_HEIGHT}px`,
-                              display: "flex",
-                              alignItems: "center",
-                              borderBottom: gIdx < categoryGroups.length - 1 ? "1px dashed #ccc" : "none",
-                              marginBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                              paddingBottom: gIdx < categoryGroups.length - 1 ? "4px" : 0,
-                            }}>
-                              <span style={{
-                                background: "#e8f0fe",
-                                color: "#1a73e8",
-                                padding: "3px 10px",
-                                borderRadius: "12px",
-                                fontSize: "11px",
-                                fontWeight: 700,
-                                whiteSpace: "nowrap",
-                              }}>
-                                {group.catName}
-                              </span>
-                            </div>
-                          ))
-                        ) : (
-                          getCategoryNames(item).map((name, idx) => (
-                            <div key={idx} style={{ height: `${ROW_HEIGHT}px`, display: "flex", alignItems: "center" }}>
-                              <span style={{
-                                background: "#e8f0fe",
-                                color: "#1a73e8",
-                                padding: "3px 10px",
-                                borderRadius: "12px",
-                                fontSize: "11px",
-                                fontWeight: 700,
-                              }}>
-                                {name}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </td>
-                      <td style={{ fontWeight: 700, verticalAlign: "middle", textAlign: "center" }}>₹{item.TotalAmount}</td>
-                      <td style={{ verticalAlign: "middle", textAlign: "center" }}>
+                  return playerRows.map((row, idx) => (
+                    <tr
+                      key={`${item._id}-${idx}`}
+                      style={{ borderTop: idx === 0 ? "2px solid #cbd5f0" : "1px solid #f0f2f8" }}
+                    >
+                      {idx === 0 && (
+                        <td rowSpan={rowSpan} style={{ ...spanCell }}>{i + 1 + firstIndex}</td>
+                      )}
+
+                      {isTeam && idx === 0 && (
+                        <td rowSpan={rowSpan} style={{ verticalAlign: "middle", padding: "10px 12px", borderLeft: "1px solid #dee2e6" }}>
+                          {item.OrganisationName ? (
+                            <span style={{ fontWeight: 700, fontSize: "13px", color: "#031B77" }}>
+                              {item.OrganisationName}
+                            </span>
+                          ) : (
+                            <span style={{ color: "#aaa" }}>—</span>
+                          )}
+                        </td>
+                      )}
+
+                      <td style={{ padding: "8px 12px", fontSize: "13px", fontWeight: 600 }}>{row.name}</td>
+                      <td style={{ padding: "8px 12px", fontSize: "13px", whiteSpace: "nowrap" }}>{row.phone || "—"}</td>
+                      <td style={{ padding: "8px 12px", fontSize: "13px", whiteSpace: "nowrap" }}>{row.email || "—"}</td>
+                      <td style={{ padding: "8px 12px" }}>
                         <span style={{
-                          background: "#d4edda",
-                          color: "#155724",
-                          padding: "4px 12px",
-                          borderRadius: "20px",
-                          fontSize: "12px",
+                          background: "#e8f0fe",
+                          color: "#1a73e8",
+                          padding: "3px 10px",
+                          borderRadius: "12px",
+                          fontSize: "11px",
                           fontWeight: 700,
+                          whiteSpace: "nowrap",
                         }}>
-                          {item.status}
+                          {row.catName}
                         </span>
                       </td>
-                      <td style={{ verticalAlign: "middle", textAlign: "center", fontSize: "13px", color: "#333" }}>
-                        {item.PaymentDate || "—"}
-                      </td>
-                      <td style={{ textAlign: "center", verticalAlign: "middle" }}>
-                        <AiFillDelete
-                          className="text-danger"
-                          style={{ cursor: "pointer", fontSize: "20px" }}
-                          onClick={() => {
-                            setShow4(true);
-                            setDeleteId(item?._id);
-                          }}
-                        />
-                      </td>
+
+                      {idx === 0 && (
+                        <td rowSpan={rowSpan} style={{ ...spanCell, fontWeight: 700 }}>₹{item.TotalAmount}</td>
+                      )}
+                      {idx === 0 && (
+                        <td rowSpan={rowSpan} style={{ ...spanCell }}>
+                          <span style={{
+                            background: isPaid ? "#d4edda" : isPending ? "#fff3cd" : "#e2e3e5",
+                            color: isPaid ? "#155724" : isPending ? "#856404" : "#41464b",
+                            padding: "4px 12px",
+                            borderRadius: "20px",
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                          }}>
+                            {item.status || "—"}
+                          </span>
+                        </td>
+                      )}
+                      {idx === 0 && (
+                        <td rowSpan={rowSpan} style={{ ...spanCell, fontSize: "13px", color: "#333" }}>
+                          {item.PaymentDate || "—"}
+                        </td>
+                      )}
+                      {idx === 0 && (
+                        <td rowSpan={rowSpan} style={{ ...spanCell }}>
+                          <AiFillDelete
+                            className="text-danger"
+                            style={{ cursor: "pointer", fontSize: "20px" }}
+                            onClick={() => {
+                              setShow4(true);
+                              setDeleteId(item?._id);
+                            }}
+                          />
+                        </td>
+                      )}
                     </tr>
-                  );
+                  ));
                 })
               ) : (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: "center", padding: "20px", color: "#999" }}>
-                    No paid registrations found
+                  <td colSpan={selectedEvent?.EventType === "team" ? 10 : 9} style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                    No registrations found
                     {categoryFilter !== "all" && ` for "${categoryFilter}"`}
                   </td>
                 </tr>

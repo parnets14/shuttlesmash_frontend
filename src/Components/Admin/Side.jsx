@@ -62,6 +62,7 @@ import { GrGallery } from "react-icons/gr";
 import { MdGroups2 } from "react-icons/md";
 import { MdContactPhone } from "react-icons/md";
 import { FaRegistered } from "react-icons/fa";
+import { FaMicrophone } from "react-icons/fa";
 import { MdOutlineSupportAgent } from "react-icons/md";
 
 
@@ -387,6 +388,15 @@ const Side = () => {
                     <HiTrophy style={{ fontSize: "20px" }} />
                   </span>
                   <span className="ms-2">Ranking Circuit</span>
+                </li>
+              </Link>
+
+              <Link to="/admin_podcast" onClick={handleNavCollapse}>
+                <li className="a-ele ">
+                  <span>
+                    <FaMicrophone style={{ fontSize: "20px" }} />
+                  </span>
+                  <span className="ms-2">Podcast</span>
                 </li>
               </Link>
 
