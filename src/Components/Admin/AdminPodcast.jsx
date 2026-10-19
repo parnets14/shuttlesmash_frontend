@@ -246,10 +246,8 @@ const AdminPodcast = () => {
 
   const AddPodcastDetails = async () => {
     if (!PodcastTitle.trim()) return alert("Please enter a title");
-    if (!PodcastLink.trim())  return alert("Please enter a YouTube link");
-    const embed = getYouTubeEmbed(PodcastLink.trim());
-    if (!embed) return alert("Please enter a valid YouTube link");
     try {
+      const embed = PodcastLink.trim() ? getYouTubeEmbed(PodcastLink.trim()) : "";
       const res = await axios.post(`${API_URL}/api/admin/podcast`, {
         PodcastTitle, PodcastDescription, PodcastLink: embed,
       });
@@ -267,10 +265,8 @@ const AdminPodcast = () => {
 
   const EditPodcast = async () => {
     if (!PodcastTitle.trim()) return alert("Please enter a title");
-    if (!PodcastLink.trim())  return alert("Please enter a YouTube link");
-    const embed = getYouTubeEmbed(PodcastLink.trim());
-    if (!embed) return alert("Please enter a valid YouTube link");
     try {
+      const embed = PodcastLink.trim() ? getYouTubeEmbed(PodcastLink.trim()) : "";
       const res = await axios.put(`${API_URL}/api/admin/editpodcast`, {
         id: editItem?._id, PodcastTitle, PodcastDescription, PodcastLink: embed,
       });
@@ -612,7 +608,7 @@ const AdminPodcast = () => {
               value={PodcastDescription} onChange={e => setPodcastDescription(e.target.value)} />
           </div>
           <div className="do-sear mt-2">
-            <label>YouTube Link <span style={{ color: "red" }}>*</span></label>
+            <label>YouTube Link</label>
             <input type="text" className="vi_0" placeholder="https://www.youtube.com/watch?v=..."
               value={PodcastLink} onChange={e => setPodcastLink(e.target.value)} />
             <small className="text-muted">Paste any YouTube link — it will be embedded automatically.</small>
@@ -638,7 +634,7 @@ const AdminPodcast = () => {
             <textarea className="vi_0" rows={3} value={PodcastDescription} onChange={e => setPodcastDescription(e.target.value)} />
           </div>
           <div className="do-sear mt-2">
-            <label>YouTube Link <span style={{ color: "red" }}>*</span></label>
+            <label>YouTube Link</label>
             <input type="text" className="vi_0" value={PodcastLink} onChange={e => setPodcastLink(e.target.value)} />
             <small className="text-muted">Paste any YouTube link — it will be embedded automatically.</small>
           </div>
